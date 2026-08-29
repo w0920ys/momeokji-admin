@@ -19,11 +19,12 @@ import {
   Share2,
   Sun,
   UserPlus,
+  Users,
 } from 'lucide-react'
 
 import { useTheme } from '@/lib/theme'
 import { useAuth } from '@/lib/auth'
-import { mockSource } from '@/lib/metrics/mock'
+import { posthogSource } from '@/lib/metrics/posthog'
 import type { DashboardData, DateRange } from '@/lib/metrics/types'
 import { entryPathLabel, formatCompact, formatNumber, formatPercent, formatValue } from '@/lib/format'
 import { METRIC_DEFINITIONS } from '@/lib/metrics/posthog-definitions'
@@ -53,6 +54,7 @@ import { HomeSection } from '@/pages/HomeSection'
 import { SettingsSection } from '@/pages/SettingsSection'
 import { DesignSystemSection } from '@/pages/DesignSystemSection'
 import { EventCatalogSection } from '@/pages/EventCatalogSection'
+import { UsersSection } from '@/pages/UsersSection'
 
 /*
  * 모먹지 어드민. 최상위를 두 모드로 나눈다 — ① 애널리틱스(이 파일이
@@ -83,6 +85,7 @@ const ANALYTICS_NAV: AppShellNavItem[] = [
   { id: 'channels', label: '채널 비교', icon: GitCompare },
   { id: 'monetization', label: '수익화', icon: Coins },
   { id: 'events', label: '이벤트 카탈로그', icon: Database },
+  { id: 'users', label: '유저 관리', icon: Users },
   { id: 'settings', label: '설정', icon: SettingsIcon },
 ]
 
@@ -147,9 +150,14 @@ function AnalyticsDashboard({
 
   useEffect(() => {
     let cancelled = false
-    mockSource.getDashboard(range).then((d) => {
-      if (!cancelled) setData(d)
-    })
+    posthogSource.getDashboard(range).then(
+      (d) => {
+        if (!cancelled) setData(d)
+      },
+      (err) => {
+        if (!cancelled) console.error('대시보드 데이터 로드 실패:', err)
+      },
+    )
     return () => {
       cancelled = true
     }
@@ -663,6 +671,13 @@ function AnalyticsDashboard({
                   description="PostHog 이벤트 36개가 index.html 어디에, 어떻게 심어져 있는지 — 이벤트명·trigger·property부터 발생 화면, 사용되는 지표까지."
                 >
                   <EventCatalogSection />
+                </Section>
+              )}
+
+              {/* 유저 관리 */}
+              {activeId === 'users' && (
+                <Section id="users" title="유저 관리" description="가입한 모먹지 사용자 — 언제 가입했는지, 닉네임 수정, 계정 삭제.">
+                  <UsersSection />
                 </Section>
               )}
 
