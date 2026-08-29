@@ -1,0 +1,262 @@
+/*
+ * 이 파일은 어드민 디자인 시스템(adminds)의 토큰 원본과 한 곳만 다르다 —
+ * 원본에 있던 `html, body { overflow: hidden }`을 뺐다. 그것은 문서 사이트가
+ * 스크롤을 main 하나에 몰아 주려고 둔 것이라 보통의 앱에서는 페이지가
+ * 아예 굴러가지 않는다. 나머지는 그대로이므로 원본이 바뀌면 그대로 덮어쓰고
+ * 이 한 줄만 다시 빼면 된다.
+ */
+
+/* 다크 테마 전환: 루트의 .dark 클래스 */
+@custom-variant dark (&:is(.dark *));
+
+/* 전시 페이지에서 hover/focus를 정적으로 보여주기 위한 강제 변형.
+   .state-hover 안의 자손은 마우스가 없어도 hover 스타일을 받는다.
+   PropertyBlock과 StatePage 외의 곳에서는 이 클래스를 쓰지 않는다. */
+@custom-variant hover {
+  &:hover { @media (hover: hover) { @slot } }
+  .state-hover & { @slot }
+}
+@custom-variant focus-visible (&:focus-visible, .state-focus &);
+
+:root {
+  --radius: 0.5rem;
+
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --surface: oklch(1 0 0);
+  --surface-raised: oklch(0.985 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  /*
+   * --surface-raised(0.985)와 명도가 거의 같아(0.97) 대비 1.04:1 — 다크에서는
+   * 아예 같은 값이 되는 문제의 라이트 쪽 절반이다(아래 .dark의 --muted 주석
+   * 참고). --surface-raised는 카드·스테이지·표 머리 등 훨씬 넓게 쓰여 손대지
+   * 않고, 채움 쪽인 --muted만 명도를 0.93으로 낮췄다 — 라이트에서 --card·
+   * --surface·--background는 모두 1.0으로 같은 값이라 그 위에서는 1.23:1,
+   * 이 넷 중 가장 타이트한 --surface-raised(0.985) 위에서는 1.17:1로
+   * 갈라져 Skeleton·Progress 트랙이 카드를 포함한 어떤 표면 위에서도
+   * 도형으로 읽힌다.
+   */
+  --muted: oklch(0.93 0 0);
+  /*
+   * --muted가 0.97→0.93으로 낮아지며(바로 위 주석) 예전 0.523(0.556에서 한 차례
+   * 낮춘 값)으로는 새 --muted 위에서 4.5:1에 못 미쳤다(4.41:1). 명도만 0.5로
+   * 다시 낮춰 새 --muted(0.93) 위에서 4.90:1, Alert·Toast의 bg-destructive/10
+   * 탄 배경(가장 어두운 조합) 위에서는 4.82:1 — Avatar 대체 글자·Table 담당자
+   * 칸·Anatomy 번호 배지가 전부 이 토큰 하나를 물려받는다. 채도·색상은 그대로
+   * 두고 명도만 낮췄다 — 더 어둡게 하면 '덜 중요한 글자'라는 위계가 본문과
+   * 구별되지 않는다.
+   */
+  --muted-foreground: oklch(0.5 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
+  --success: oklch(0.596 0.145 163.225);
+  --success-foreground: oklch(0.985 0 0);
+  --warning: oklch(0.769 0.188 70.08);
+  --warning-foreground: oklch(0.145 0 0);
+  --info: oklch(0.6 0.118 264.376);
+  --info-foreground: oklch(0.985 0 0);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+
+  /*
+   * 옅게 탄 배경(예: bg-info/15) 위에 얹는 글자색이다. *-foreground는 이미
+   * 불투명한 배경(예: bg-info)과 짝지어 확인됐지만, 배경을 15%만 탄 다음
+   * 원래 색을 그대로 글자에 쓰면 라이트 테마에서 대비가 4.5:1을 넘지
+   * 못한다 — 채도(C)·색상(H)은 그대로 두고 명도(L)만 낮춰 각 색이 자기
+   * 몫의 옅은 배경 위에서 4.5:1을 넉넉히 넘도록 다시 잡았다. neutral은
+   * 상태색이 아니라 무채색이지만 같은 칩 패턴(Badge)에 쓰인다. muted-foreground도
+   * 이제 라이트에서 명도를 낮췄지만(위 주석 참고) 그 값은 Alert·Toast의
+   * 더 어두운 탄 배경에 맞춘 것이라, Badge의 opaque --muted 배경 하나에만
+   * 맞춘 이 토큰과는 목표 배경이 달라 계속 따로 둔다.
+   */
+  --neutral-on-tint: oklch(0.51 0 0);
+  --info-on-tint: oklch(0.525 0.118 264.376);
+  --success-on-tint: oklch(0.492 0.145 163.225);
+  --warning-on-tint: oklch(0.542 0.188 70.08);
+  --destructive-on-tint: oklch(0.496 0.245 27.325);
+
+  /*
+   * 문서 주석 전용. 제품 UI에는 쓰지 않는다 — 컴포넌트 색과 절대 겹치지 않아야 한다.
+   * annotation-muted는 Anatomy의 좁은 화면 번호 배지(bg-annotation-muted
+   * text-background)에서 흰 글자를 얹는 바탕으로도 쓰인다 — 원래 명도(0.7)로는
+   * 2.77:1이라 라이트에서 명도를 낮췄다. 이 토큰은 그 배지 하나에만 쓰여 다른
+   * 곳에 번지지 않는다.
+   */
+  --annotation: oklch(0.55 0.22 285);
+  --annotation-muted: oklch(0.573 0.14 285);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --surface: oklch(0.205 0 0);
+  --surface-raised: oklch(0.269 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  /*
+   * --surface-raised와 완전히 같은 값(0.269)이었다 — Skeleton·Progress 트랙이
+   * bg-surface-raised 스테이지 위에서 대비 1:1로 완전히 사라졌다. 처음엔
+   * 0.21로만 낮췄는데, 그러면 --surface·--card(둘 다 0.205)와 거의 같은
+   * 값(1.01:1)이 되어 결함이 다른 표면으로 옮겨갈 뿐이었다 — 기본 Card
+   * 변형(outlined)이 bg-card를 쓰므로 실제 카드 위에서 그대로 재현됐다.
+   * --muted는 --background(0.145)·--surface·--card(0.205)·--surface-raised
+   * (0.269) 네 표면 모두와 갈라져야 해서 0.32로 다시 잡았다 — --background
+   * 위 1.57:1, --surface·--card 위 1.42:1, 넷 중 가장 타이트한
+   * --surface-raised 위 1.20:1. --muted-foreground(0.708)는 이 --muted
+   * 위에서도 4.89:1이라 함께 옮기지 않았다.
+   */
+  --muted: oklch(0.32 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.985 0 0);
+  --success: oklch(0.696 0.17 162.48);
+  --success-foreground: oklch(0.145 0 0);
+  --warning: oklch(0.828 0.189 84.429);
+  --warning-foreground: oklch(0.145 0 0);
+  --info: oklch(0.707 0.165 254.624);
+  --info-foreground: oklch(0.145 0 0);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+
+  /* 다크에서는 원래 색을 옅은 배경 위에 그대로 써도 이미 4.5:1을 넘는다 — 따로 낮추지 않는다 */
+  --neutral-on-tint: var(--muted-foreground);
+  --info-on-tint: var(--info);
+  --success-on-tint: var(--success);
+  --warning-on-tint: var(--warning);
+  --destructive-on-tint: var(--destructive);
+
+  --annotation: oklch(0.75 0.16 285);
+  --annotation-muted: oklch(0.62 0.12 285);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-neutral-on-tint: var(--neutral-on-tint);
+  --color-info-on-tint: var(--info-on-tint);
+  --color-success-on-tint: var(--success-on-tint);
+  --color-warning-on-tint: var(--warning-on-tint);
+  --color-destructive-on-tint: var(--destructive-on-tint);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-annotation: var(--annotation);
+  --color-annotation-muted: var(--annotation-muted);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  /* 어드민 정보 밀도 축. 테이블 행과 컨트롤 높이를 한 곳에서 통제한다. */
+  --spacing-control-sm: 2rem;
+  --spacing-control: 2.25rem;
+  --spacing-control-lg: 2.5rem;
+  --spacing-row: 3rem;
+  --spacing-row-compact: 2.5rem;
+
+  --shadow-card: 0 1px 2px 0 oklch(0 0 0 / 0.04);
+  --shadow-popover: 0 8px 24px -6px oklch(0 0 0 / 0.12);
+
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: calc(1 / 0.6875);
+
+  /* Pretendard를 앞에 두고 시스템 폰트를 폴백으로 남긴다.
+     CDN이 막히거나 폰트가 아직 오지 않아도 한글이 깨지지 않게 한다. */
+  --font-sans:
+    'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto,
+    'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic',
+    sans-serif;
+
+  /* z-index 레이어. 값이 컴포넌트마다 흩어지지 않게 한 곳에 모은다.
+     Tailwind v4는 --z-index-* 네임스페이스를 z-* 유틸리티로 노출한다. */
+  --z-index-sticky: 10;
+  --z-index-drawer: 20;
+  --z-index-overlay: 30;
+  --z-index-popover: 40;
+  --z-index-toast: 50;
+
+  /* Progress의 indeterminate 상태. 값을 모를 때 좁힌 Indicator(w-1/3)가
+     track을 가로질러 오간다. tailwindcss/theme.css의 --animate-spin과
+     같은 자리에 같은 방식(--animate-* 토큰 + 중첩 @keyframes)으로 둔다. */
+  --animate-progress-indeterminate: progress-indeterminate 1.4s ease-in-out infinite;
+
+  @keyframes progress-indeterminate {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(400%);
+    }
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    -webkit-font-smoothing: antialiased;
+    margin: 0;
+    /* font-sans 유틸리티를 쓰지 않은 곳까지 같은 스택으로 덮는다 */
+    font-family: var(--font-sans);
+    /* 한글은 음절 단위로 줄바꿈한다. 어절 단위로 묶으면 좁은 화면에서 한 줄이 크게 빈다 */
+    word-break: normal;
+    overflow-wrap: break-word;
+  }
+}
+
+/*
+ * 스크롤 막대만 감춘다. 스크롤 자체는 막지 않는다.
+ * 두 줄이 필요하다 — 앞은 Firefox, 뒤는 WebKit이다.
+ */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
