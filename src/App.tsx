@@ -1,13 +1,18 @@
 import { useEffect, useState } from 'react'
 import {
   Activity,
+  BarChart3,
+  Blocks,
   Coins,
   Dices,
   GitCompare,
   Home as HomeIcon,
   Inbox,
+  Info,
+  Layers,
   ListChecks,
   Moon,
+  Palette,
   Repeat2,
   Settings as SettingsIcon,
   Share2,
@@ -42,20 +47,27 @@ import { LoginPage } from '@/pages/LoginPage'
 import { SetNewPasswordPage } from '@/pages/SetNewPasswordPage'
 import { HomeSection } from '@/pages/HomeSection'
 import { SettingsSection } from '@/pages/SettingsSection'
+import { DesignSystemSection } from '@/pages/DesignSystemSection'
 
 /*
- * 모먹지 애널리틱스 대시보드. 계획(docs/superpowers/specs 대신 세션 계획
- * 파일)의 Part 1 — 유입 · 재방문 · 룰렛 핵심 사용을 최상위 축으로, 그
- * 아래 기능 채택 · 바이럴 · 채널 비교 · 수익화(placeholder)를 둔다.
+ * 모먹지 어드민. 최상위를 두 모드로 나눈다 — ① 애널리틱스(이 파일이
+ * 원래 갖고 있던 전부: 유입·재방문·룰렛 핵심 사용 등)와 ② 디자인시스템
+ * (모먹지 앱 자체의 토큰·컴포넌트 현황, DesignSystemSection.tsx). 둘 다
+ * "관리자가 모먹지에 대해 보는 화면"이라는 점에서 한 어드민 아래 있지만,
+ * 서로 다른 데이터 소스(전자는 이벤트 지표, 후자는 손으로 관리하는
+ * 코드 스냅샷)라 nav도 화면도 완전히 갈라 둔다 — AdminRoot의 mode
+ * state가 그 경계다.
  *
  * 이 파일은 디자인 시스템 컴포넌트(components/ui/*)를 "조합"만 한다 —
  * 새 차트·타일 종류가 필요해지면 이 파일이 아니라 시스템 쪽에 더한다.
- * 데이터는 지금 MockSource(src/lib/metrics/mock.ts)를 쓰고, PostHog 계측
- * 후 PostHogSource로 source.ts 인터페이스만 바꿔 낀다 — 이 화면은 그
- * 교체를 몰라도 된다.
+ * 애널리틱스 데이터는 지금 MockSource(src/lib/metrics/mock.ts)를 쓰고,
+ * PostHog 계측 후 PostHogSource로 source.ts 인터페이스만 바꿔 낀다 —
+ * 이 화면은 그 교체를 몰라도 된다.
  */
 
-const NAV: AppShellNavItem[] = [
+type AdminMode = 'analytics' | 'design-system'
+
+const ANALYTICS_NAV: AppShellNavItem[] = [
   { id: 'home', label: '홈', icon: HomeIcon },
   { id: 'acquisition', label: '유입', icon: UserPlus },
   { id: 'retention', label: '재방문', icon: Repeat2 },
@@ -68,10 +80,22 @@ const NAV: AppShellNavItem[] = [
   { id: 'settings', label: '설정', icon: SettingsIcon },
 ]
 
+const DESIGN_SYSTEM_NAV: AppShellNavItem[] = [
+  { id: 'ds-overview', label: '개요', icon: Info },
+  { id: 'ds-foundation', label: '파운데이션', icon: Palette },
+  { id: 'ds-semantic', label: '시맨틱 토큰', icon: Layers },
+  { id: 'ds-components', label: '컴포넌트', icon: Blocks },
+  { id: 'ds-usage', label: '활용 현황', icon: BarChart3 },
+]
+
 const RANGE_LABEL: Record<DateRange, string> = { '7d': '최근 7일', '28d': '최근 28일', '90d': '최근 90일' }
 
-/** 섹션 하나의 뼈대 — 제목 + 설명 + 내용. 이 페이지에서만 쓰는 배치용이라 시스템에 넣지 않는다. */
-function Section({
+/**
+ * 섹션 하나의 뼈대 — 제목 + 설명 + 내용. 애널리틱스·디자인시스템 두 모드가
+ * 똑같은 "옆 nav 클릭 → 앵커로 스크롤" 패턴을 쓰므로 이 파일 밖(DesignSystemSection)
+ * 에서도 그대로 재사용한다. 배치용 컴포넌트라 components/ui까지는 올리지 않는다.
+ */
+export function Section({
   id,
   title,
   description,
@@ -93,7 +117,15 @@ function Section({
   )
 }
 
-function Dashboard({ adminEmail, onSignOut }: { adminEmail: string; onSignOut: () => void }) {
+function AnalyticsDashboard({
+  adminEmail,
+  onSignOut,
+  topNav,
+}: {
+  adminEmail: string
+  onSignOut: () => void
+  topNav: React.ReactNode
+}) {
   const { theme, toggle } = useTheme()
   const [range, setRange] = useState<DateRange>('28d')
   const [data, setData] = useState<DashboardData | null>(null)
@@ -145,10 +177,11 @@ function Dashboard({ adminEmail, onSignOut }: { adminEmail: string; onSignOut: (
             <span className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md text-xs font-bold">
               모
             </span>
-            모먹지 애널리틱스
+            모먹지 어드민
           </span>
         }
-        nav={NAV}
+        topNav={topNav}
+        nav={ANALYTICS_NAV}
         activeId={activeId}
         onNavigate={handleNavigate}
         actions={themeToggle}
@@ -449,6 +482,59 @@ function Dashboard({ adminEmail, onSignOut }: { adminEmail: string; onSignOut: (
 }
 
 /*
+ * 디자인시스템 모드 — 모먹지 앱(별도 저장소) 자체의 토큰·컴포넌트 현황.
+ * 애널리틱스와 달리 이벤트 데이터가 없어 useEffect로 뭔가를 fetch할 필요가
+ * 없다(momeokji-tokens.ts의 손으로 관리하는 스냅샷을 그대로 그린다) —
+ * 그래서 로딩 스켈레톤도, 기간 스위치도 없다. activeId/스크롤 내비만
+ * AnalyticsDashboard와 같은 패턴을 그대로 따른다.
+ */
+function DesignSystemDashboard({ topNav }: { topNav: React.ReactNode }) {
+  const { theme, toggle } = useTheme()
+  const [activeId, setActiveId] = useState('ds-overview')
+
+  const handleNavigate = (id: string) => {
+    setActiveId(id)
+    document.getElementById(id)?.scrollIntoView({ block: 'start' })
+  }
+
+  const themeToggle = (
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={toggle}
+      aria-label={theme === 'dark' ? '라이트 테마로 전환' : '다크 테마로 전환'}
+    >
+      {theme === 'dark' ? <Sun aria-hidden className="size-4" /> : <Moon aria-hidden className="size-4" />}
+    </Button>
+  )
+
+  return (
+    <TooltipProvider>
+      <AppShell
+        brand={
+          <span className="flex items-center gap-2">
+            <span className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md text-xs font-bold">
+              모
+            </span>
+            모먹지 어드민
+          </span>
+        }
+        topNav={topNav}
+        nav={DESIGN_SYSTEM_NAV}
+        activeId={activeId}
+        onNavigate={handleNavigate}
+        actions={themeToggle}
+      >
+        <PageHeader title="디자인 시스템" description="모먹지 앱에 적용된 파운데이션·시맨틱 토큰과 공통 컴포넌트를 조회합니다." />
+        <div className="flex flex-col gap-10 px-6 py-8">
+          <DesignSystemSection />
+        </div>
+      </AppShell>
+    </TooltipProvider>
+  )
+}
+
+/*
  * 관리자 1인 전용 게이트. Supabase 세션을 확인하는 동안(loading)은 빈
  * 배경만 보여준다 — 그 짧은 순간에 로그인 화면이 번쩍였다 사라지면
  * "지금 로그인된 건가 아닌가" 헷갈린다. signed-out이면 화이트리스트에
@@ -469,5 +555,33 @@ export function App() {
   if (auth.status !== 'signed-in') {
     return <LoginPage />
   }
-  return <Dashboard adminEmail={auth.user.email ?? ''} onSignOut={auth.signOut} />
+  return <AdminRoot adminEmail={auth.user.email ?? ''} onSignOut={auth.signOut} />
+}
+
+/*
+ * 최상위 모드 스위처. 라우터를 새로 들이지 않고 이 파일 전체가 이미 쓰던
+ * "state + 앵커 스크롤" 방식을 그대로 한 단계 위로 확장했다 — 관리자
+ * 1인 전용 내부 도구라 URL 공유 가치가 낮고, 지금 있는 어떤 패턴과도
+ * 다른 라우팅 라이브러리를 새로 들이는 비용이 더 크다고 판단했다(YAGNI).
+ */
+function AdminRoot({ adminEmail, onSignOut }: { adminEmail: string; onSignOut: () => void }) {
+  const [mode, setMode] = useState<AdminMode>('analytics')
+
+  const modeSwitch = (
+    <Tabs value={mode} onValueChange={(v) => setMode(v as AdminMode)}>
+      <TabsList variant="enclosed" className="w-full">
+        <TabsTrigger value="analytics" variant="enclosed" className="flex-1">
+          애널리틱스
+        </TabsTrigger>
+        <TabsTrigger value="design-system" variant="enclosed" className="flex-1">
+          디자인시스템
+        </TabsTrigger>
+      </TabsList>
+    </Tabs>
+  )
+
+  if (mode === 'design-system') {
+    return <DesignSystemDashboard topNav={modeSwitch} />
+  }
+  return <AnalyticsDashboard adminEmail={adminEmail} onSignOut={onSignOut} topNav={modeSwitch} />
 }

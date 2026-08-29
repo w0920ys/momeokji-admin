@@ -17,6 +17,7 @@ export interface AppShellNavItem {
 
 export function AppShell({
   brand,
+  topNav,
   nav,
   activeId,
   onNavigate,
@@ -24,6 +25,12 @@ export function AppShell({
   children,
 }: {
   brand: React.ReactNode
+  /**
+   * brand와 섹션 nav 사이에 얹는 상위 스위처(예: "애널리틱스"/"디자인시스템"
+   * 모드 전환 Tabs). 이 셸은 그 스위처가 뭘 전환하는지 알 필요가 없어
+   * ReactNode로만 받는다 — 없으면 기존처럼 brand 바로 아래가 섹션 nav다.
+   */
+  topNav?: React.ReactNode
   nav: AppShellNavItem[]
   activeId?: string
   onNavigate?: (id: string) => void
@@ -41,6 +48,7 @@ export function AppShell({
     <div className="bg-background text-foreground flex flex-col md:h-svh md:flex-row">
       <aside className="hidden shrink-0 flex-col border-r md:flex md:w-56">
         <div className="flex h-14 items-center gap-2 px-4 font-semibold">{brand}</div>
+        {topNav && <div className="px-2 pb-2">{topNav}</div>}
         <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-2" aria-label="대시보드 섹션">
           {nav.map((item) => (
             <NavButton key={item.id} item={item} active={item.id === activeId} onClick={() => onNavigate?.(item.id)} />
@@ -54,6 +62,7 @@ export function AppShell({
           {brand}
           {actions}
         </div>
+        {topNav && <div className="px-2 pb-2">{topNav}</div>}
         <nav className="scrollbar-none flex gap-1 overflow-x-auto px-2 pb-2" aria-label="대시보드 섹션">
           {nav.map((item) => (
             <NavButton key={item.id} item={item} active={item.id === activeId} onClick={() => onNavigate?.(item.id)} compact />
