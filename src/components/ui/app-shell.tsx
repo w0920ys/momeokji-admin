@@ -86,11 +86,11 @@ export function AppShell({
                   <Menu className="size-5" aria-hidden />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="p-0">
-                <SheetHeader>
-                  <SheetTitle>메뉴</SheetTitle>
+              <SheetContent side="left" size="sm" className="gap-2">
+                <SheetHeader className="p-0">
+                  <SheetTitle className="text-16">메뉴</SheetTitle>
                 </SheetHeader>
-                <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto p-2" aria-label="대시보드 섹션">
+                <nav className="-mx-2 flex flex-col gap-0.5" aria-label="대시보드 섹션">
                   {nav.map((item) => (
                     <NavButton key={item.id} item={item} active={item.id === activeId} onClick={() => handleMobileNavigate(item.id)} />
                   ))}

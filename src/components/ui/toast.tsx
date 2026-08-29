@@ -88,12 +88,23 @@ function ToastAction({ className, ...props }: React.ComponentProps<typeof ToastP
   )
 }
 
+/*
+ * Toast 루트는 items-start다 — Description·Action까지 쌓인 여러 줄
+ * 구성에서는 닫기 버튼이 첫 줄에 붙어야 하므로 items-center로 통째
+ * 바꿀 수 없다. 문제는 제목 한 줄짜리 Toast에서 생긴다: ToastTitle의
+ * 줄 높이(--text-16--line-height, 28px)는 닫기 아이콘(16px) 그대로라
+ * items-start가 둘의 '위'만 맞추고, 아이콘이 자기 줄의 세로 중심보다
+ * 위로 붙어 보였다 — size-7(28px, 제목 한 줄 높이와 같다)에 flex
+ * items-center justify-center로 아이콘을 그 상자 한가운데 두면,
+ * items-start로 위를 맞춰도 상자 자체가 첫 줄과 같은 높이라 아이콘이
+ * 그 줄의 중심에 온다. 클릭 영역이 16px에서 28px로 넓어지는 것은 덤이다.
+ */
 function ToastClose({ className, ...props }: React.ComponentProps<typeof ToastPrimitive.Close>) {
   return (
     <ToastPrimitive.Close
       data-slot="toast-close"
       className={cn(
-        'text-muted-foreground hover:text-foreground shrink-0 rounded-xs outline-none',
+        'text-muted-foreground hover:text-foreground flex size-7 shrink-0 items-center justify-center rounded-xs outline-none',
         'focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-2',
         className,
       )}

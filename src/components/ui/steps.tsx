@@ -164,7 +164,17 @@ function Step({ className, state = 'pending', children, connectorProps, ...props
         data-state={state}
         aria-current={state === 'current' ? 'step' : undefined}
         className={cn(
-          'group/step relative',
+          /*
+           * isolate가 없으면 relative만으로는 새 stacking context가 열리지
+           * 않는다 — 그러면 아래 Connector의 -z-10과 Indicator의 z-10이
+           * 이 Step 안에서만 비교되지 않고, 가장 가까운 stacking context
+           * (보통 페이지 루트)를 기준으로 비교된다. Connector의 -10은
+           * 페이지의 불투명한 배경보다도 뒤로 밀려 완전히 가려지고 선이
+           * 통째로 안 보였다 — isolate로 Step 하나가 자기 stacking
+           * context를 열어야 Connector·Indicator의 z-index가 이 Step
+           * 안에서만 겨루고, 그 결과가 밖으로 새지 않는다.
+           */
+          'group/step relative isolate',
           orientation === 'horizontal'
             ? 'flex min-w-0 flex-1 flex-col items-center gap-1.5 text-center'
             : 'grid grid-cols-[auto_1fr] items-start gap-x-3 gap-y-0.5 pb-8 last:pb-0',

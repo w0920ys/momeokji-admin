@@ -13,12 +13,24 @@ export const DESIGN_SYSTEM = {
   /** adminds-starter 템플릿 자체의 package.json 버전(클론 시점 스냅샷). */
   starterVersion: '0.1.0',
   /** 이 프로젝트가 adminds 컴포넌트를 마지막으로 받아온 날짜. */
-  vendoredAt: '2026-08-29',
+  vendoredAt: '2026-08-30',
   /** 레지스트리의 registry:ui 항목 수(원본 규모 참고용, registry.json 기준). */
-  upstreamComponentCount: 40,
-  /** 원본 대비 이 프로젝트가 로컬로 더 얹은 컴포넌트 수(아직 업스트림 미반영). */
-  localExtensions: 10,
-  /** 로컬 확장 목록 — UPSTREAM-COMPONENTS.md와 동기화해서 관리. */
+  upstreamComponentCount: 48,
+  /** 원본 대비 이 프로젝트가 로컬로 더 얹었거나(신규) 의도적으로 다르게 유지 중인(diverged) 컴포넌트 수. */
+  localExtensions: 16,
+  /**
+   * 로컬 확장 목록 — UPSTREAM-COMPONENTS.md와 동기화해서 관리.
+   * 두 갈래다: (1) 원본에 아예 없는 신규 컴포넌트 — chart-bar-horizontal·
+   * chart-bar-vertical·chart-funnel·chart-donut·stat-card·trend-badge·
+   * app-shell·page-header·password-input·chart-view-select·
+   * metric-info-button·component-preview-frame. (2) 원본에 같은 이름이
+   * 있지만 API/동작이 갈라져 있어 동기화 때 덮어쓰면 안 되는 것 —
+   * chart(원본은 valueFormatter 대신 formatter/nameKey/labelKey를 쓴다),
+   * chart-line(원본은 title/description/config/categoryKey를 받는 완전히
+   * 다른 API), card(원본엔 아직 없는 CardAction 유무별 grid 버그 수정을
+   * 로컬에 유지 중), table(원본엔 아직 없는 좁은 화면 가로 스크롤 페이드
+   * 힌트를 로컬에 유지 중).
+   */
   localExtensionNames: [
     'chart',
     'chart-line',
@@ -26,9 +38,15 @@ export const DESIGN_SYSTEM = {
     'chart-bar-vertical',
     'chart-funnel',
     'chart-donut',
+    'card',
+    'table',
     'stat-card',
     'trend-badge',
     'app-shell',
     'page-header',
+    'password-input',
+    'chart-view-select',
+    'metric-info-button',
+    'component-preview-frame',
   ],
 } as const

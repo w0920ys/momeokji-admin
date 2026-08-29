@@ -89,13 +89,23 @@ function DescriptionTerm({ className, ...props }: React.ComponentProps<'dt'>) {
  * 값이 없을 때 '—'를 넣는 것은 호출하는 쪽의 일이다. 여기서 빈
  * children을 보고 대신 채우면 값이 없는 것과 빈 문자열을 구별할 수
  * 없다.
+ *
+ * horizontal에서 min-w-0 대신 min-w-20(80px)을 바닥으로 둔다. dt가
+ * shrink-0라 폭을 절대 안 줄이므로, 칸이 좁아지면(예: columns="two"인
+ * DescriptionList가 295px짜리 표 셀 안에 들어간 경우) flex-1인 dd가
+ * dt에 밀려 남는 공간이 음수가 되고, min-w-0는 그 음수를 그대로 0으로
+ * 받아들여 글자 하나하나가 줄바꿈됐다("홍길동"이 세 줄로 쪼개지는
+ * 식). 바닥값을 두면 dd가 0 대신 80px은 지켜 min-w-0일 때보다 훨씬
+ * 덜 쪼개지고, 그래도 자리가 부족하면 이 항목이 자기 grid 칸보다
+ * 넓어져 DescriptionList 전체가 넘친다 — 그 바깥(Table 등)이 이미
+ * 갖고 있는 가로 스크롤 영역이 넘친 만큼을 스크롤로 받는다.
  */
 function DescriptionDetail({ className, ...props }: React.ComponentProps<'dd'>) {
   const layout = React.useContext(DescriptionLayoutContext)
   return (
     <dd
       data-slot="description-detail"
-      className={cn('text-16', layout === 'horizontal' && 'min-w-0 flex-1', className)}
+      className={cn('text-16', layout === 'horizontal' && 'min-w-20 flex-1', className)}
       {...props}
     />
   )

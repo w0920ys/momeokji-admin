@@ -4,16 +4,11 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-/*
- * Dialog와 같은 Radix primitive(@radix-ui/react-dialog) 위에, 화면 중앙이
- * 아니라 한쪽 가장자리에서 슬라이드해 들어오는 패널만 다르게 그린 것 —
- * "모달이되 화면 밖에서 밀고 들어온다"는 점만 Dialog와 다르다. 좁은
- * 화면에서 항목 수가 많은 목록(예: AppShell 모바일 내비)을 옆으로
- * 스크롤시키지 않고 세로로 쭉 나열해서 보여줄 자리가 필요해 추가한다.
- */
 const Sheet = DialogPrimitive.Root
 const SheetTrigger = DialogPrimitive.Trigger
 const SheetClose = DialogPrimitive.Close
+
+export type SheetSide = 'right' | 'left' | 'top' | 'bottom'
 
 function SheetOverlay({ className, ...props }: React.ComponentProps<typeof DialogPrimitive.Overlay>) {
   return (
@@ -25,52 +20,133 @@ function SheetOverlay({ className, ...props }: React.ComponentProps<typeof Dialo
   )
 }
 
-const sheetContentVariants = cva('fixed z-overlay flex h-full flex-col bg-background outline-none', {
-  variants: {
-    side: {
-      left: 'inset-y-0 left-0 w-72 max-w-[85vw] border-r',
-      right: 'inset-y-0 right-0 w-72 max-w-[85vw] border-l',
+/*
+ * 덮개를 그대로 그릇으로 쓴다 — Dialog가 place-items-center로 가운데에
+ * 놓는 자리에서, Sheet는 방향에 따라 flex의 축과 끝을 바꿔 한쪽 변에
+ * 붙인다. 늘어나는 쪽은 flex의 기본 stretch가 맡으므로 h-full·w-full을
+ * 방향마다 따로 적지 않아도 된다.
+ */
+const SHEET_ALIGN: Record<SheetSide, string> = {
+  right: 'flex-row justify-end',
+  left: 'flex-row justify-start',
+  top: 'flex-col justify-start',
+  bottom: 'flex-col justify-end',
+}
+
+/*
+ * 좌우는 너비를, 위아래는 높이를 막는다. 어느 쪽도 고정 값이 아니라
+ * max-*이므로 화면이 그보다 좁거나 낮으면 컨테이너가 따라 줄어든다.
+ */
+const sheetContentVariants = cva(
+  'relative flex w-full flex-col gap-4 overflow-y-auto border bg-background p-6 shadow-lg outline-none',
+  {
+    variants: {
+      side: {
+        right: 'border-l',
+        left: 'border-r',
+        top: 'border-b',
+        bottom: 'border-t',
+      },
+      size: {
+        sm: '',
+        default: '',
+        lg: '',
+      },
     },
+    compoundVariants: [
+      { side: ['right', 'left'], size: 'sm', class: 'max-w-xs' },
+      { side: ['right', 'left'], size: 'default', class: 'max-w-sm' },
+      { side: ['right', 'left'], size: 'lg', class: 'max-w-xl' },
+      { side: ['top', 'bottom'], size: 'sm', class: 'max-h-40' },
+      { side: ['top', 'bottom'], size: 'default', class: 'max-h-64' },
+      { side: ['top', 'bottom'], size: 'lg', class: 'max-h-96' },
+    ],
+    defaultVariants: { side: 'right', size: 'default' },
   },
-  defaultVariants: { side: 'left' },
-})
+)
 
 function SheetContent({
   className,
-  side,
+  side = 'right',
+  size,
   children,
   showClose = true,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> &
-  VariantProps<typeof sheetContentVariants> & { showClose?: boolean }) {
+  VariantProps<typeof sheetContentVariants> & { side?: SheetSide; showClose?: boolean }) {
   return (
     <DialogPrimitive.Portal>
       <SheetOverlay />
-      <DialogPrimitive.Content data-slot="sheet-content" className={cn(sheetContentVariants({ side }), className)} {...props}>
-        {children}
-        {showClose && (
-          <DialogPrimitive.Close
-            className={cn(
-              'absolute top-4 right-4 rounded-xs opacity-70 outline-none transition-opacity hover:opacity-100',
-              'focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-2',
-              'disabled:pointer-events-none',
-            )}
-          >
-            <X className="size-4" />
-            <span className="sr-only">닫기</span>
-          </DialogPrimitive.Close>
-        )}
-      </DialogPrimitive.Content>
+      <div className={cn('fixed inset-0 z-overlay flex', SHEET_ALIGN[side])}>
+        <DialogPrimitive.Content
+          data-slot="sheet-content"
+          data-side={side}
+          className={cn(sheetContentVariants({ side, size }), className)}
+          {...props}
+        >
+          {children}
+          {showClose && (
+            <DialogPrimitive.Close
+              className={cn(
+                'absolute top-4 right-4 rounded-xs opacity-70 outline-none transition-opacity hover:opacity-100',
+                'focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-2',
+                'disabled:pointer-events-none',
+              )}
+            >
+              <X className="size-4" />
+              <span className="sr-only">닫기</span>
+            </DialogPrimitive.Close>
+          )}
+        </DialogPrimitive.Content>
+      </div>
     </DialogPrimitive.Portal>
   )
 }
 
 function SheetHeader({ className, ...props }: React.ComponentProps<'div'>) {
-  return <div data-slot="sheet-header" className={cn('flex h-14 shrink-0 items-center border-b px-4', className)} {...props} />
+  return <div data-slot="sheet-header" className={cn('flex shrink-0 flex-col gap-1.5', className)} {...props} />
+}
+
+function SheetFooter({ className, ...props }: React.ComponentProps<'div'>) {
+  return (
+    <div
+      data-slot="sheet-footer"
+      className={cn('flex shrink-0 flex-col-reverse gap-2 sm:flex-row sm:justify-end', className)}
+      {...props}
+    />
+  )
 }
 
 function SheetTitle({ className, ...props }: React.ComponentProps<typeof DialogPrimitive.Title>) {
-  return <DialogPrimitive.Title data-slot="sheet-title" className={cn('text-14 font-semibold', className)} {...props} />
+  return (
+    <DialogPrimitive.Title
+      data-slot="sheet-title"
+      className={cn('text-20 font-semibold', className)}
+      {...props}
+    />
+  )
 }
 
-export { Sheet, SheetTrigger, SheetClose, SheetContent, SheetHeader, SheetTitle }
+function SheetDescription({
+  className,
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Description>) {
+  return (
+    <DialogPrimitive.Description
+      data-slot="sheet-description"
+      className={cn('text-muted-foreground text-16', className)}
+      {...props}
+    />
+  )
+}
+
+export {
+  Sheet,
+  SheetTrigger,
+  SheetClose,
+  SheetContent,
+  SheetHeader,
+  SheetFooter,
+  SheetTitle,
+  SheetDescription,
+}
