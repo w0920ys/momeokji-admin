@@ -25,10 +25,12 @@ import { useAuth } from '@/lib/auth'
 import { mockSource } from '@/lib/metrics/mock'
 import type { DashboardData, DateRange } from '@/lib/metrics/types'
 import { entryPathLabel, formatCompact, formatNumber, formatPercent, formatValue } from '@/lib/format'
+import { METRIC_DEFINITIONS } from '@/lib/metrics/posthog-definitions'
 
 import { AppShell, type AppShellNavItem } from '@/components/ui/app-shell'
 import { PageHeader } from '@/components/ui/page-header'
 import { StatCard } from '@/components/ui/stat-card'
+import { MetricInfoButton } from '@/components/ui/metric-info-button'
 import { TrendBadge } from '@/components/ui/trend-badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -200,279 +202,380 @@ function AnalyticsDashboard({
               ))}
             </div>
           ) : (
+            // [페이지 분리] 예전에는 모든 섹션을 한 번에 렌더링해 두고 nav 클릭 시
+            // scrollIntoView로 그 위치까지 스크롤하는 "1페이지 앵커 내비"였다. 지금은
+            // activeId와 일치하는 섹션 하나만 렌더링한다 — 진짜 페이지 전환처럼
+            // 동작하고, 안 보는 섹션의 차트를 매번 그리지 않아도 된다.
+            // handleNavigate의 scrollIntoView 호출은 그대로 둬도 무해하다(이제
+            // "이 페이지의 유일한 섹션 맨 위로 스크롤"이 될 뿐이라 페이지 전환 시
+            // 스크롤 위치가 항상 상단으로 리셋되는 효과를 그대로 낸다).
             <>
               {/* 홈 — 로그인 후 처음 보는 화면, 전체 추이 요약 */}
-              <Section id="home" title="홈" description="지금 전체가 어떻게 움직이는지 한눈에.">
-                <HomeSection data={data} onJump={handleNavigate} />
-              </Section>
+              {activeId === 'home' && (
+                <Section id="home" title="홈" description="지금 전체가 어떻게 움직이는지 한눈에.">
+                  <HomeSection data={data} onJump={handleNavigate} />
+                </Section>
+              )}
 
               {/* ★1 유입 */}
-              <Section id="acquisition" title="유입 (획득)" description="어디서, 어떤 경로로 새 사용자가 들어오는가.">
-                <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-                  <Card className="lg:col-span-2">
-                    <CardHeader>
-                      <CardTitle className="text-sm">채널별 신규 유입 추세</CardTitle>
-                      <CardDescription>PWA vs 앱인토스</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <ChartLine
-                        data={data.acquisition.newUsersTrend}
-                        series={[
-                          { key: 'pwa', label: 'PWA' },
-                          { key: 'toss', label: '앱인토스' },
-                        ]}
-                        valueFormatter={formatCompact}
-                      />
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-sm">유입 경로 구성</CardTitle>
-                      <CardDescription>direct / utm / push / room / install</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <ChartDonut
-                        data={data.acquisition.entryShares.map((e) => ({ label: entryPathLabel(e.path), value: e.users }))}
-                        height={180}
-                      />
-                    </CardContent>
-                  </Card>
-                </div>
+              {activeId === 'acquisition' && (
+                <Section id="acquisition" title="유입 (획득)" description="어디서, 어떤 경로로 새 사용자가 들어오는가.">
+                  <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+                    <Card className="lg:col-span-2">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-1.5 text-sm">
+                          채널별 신규 유입 추세
+                          <MetricInfoButton definition={METRIC_DEFINITIONS.newUsersTrend} />
+                        </CardTitle>
+                        <CardDescription>PWA vs 앱인토스</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <ChartLine
+                          data={data.acquisition.newUsersTrend}
+                          series={[
+                            { key: 'pwa', label: 'PWA' },
+                            { key: 'toss', label: '앱인토스' },
+                          ]}
+                          valueFormatter={formatCompact}
+                        />
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-1.5 text-sm">
+                          유입 경로 구성
+                          <MetricInfoButton definition={METRIC_DEFINITIONS.entryShares} />
+                        </CardTitle>
+                        <CardDescription>direct / utm / push / room / install</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <ChartDonut
+                          data={data.acquisition.entryShares.map((e) => ({ label: entryPathLabel(e.path), value: e.users }))}
+                          height={180}
+                        />
+                      </CardContent>
+                    </Card>
+                  </div>
 
-                <Card padding="none">
-                  <CardHeader>
-                    <CardTitle className="text-sm">유입 소스 (UTM)</CardTitle>
-                    <CardDescription>utm_source / medium / campaign 브레이크다운</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Table label="유입 소스별 신규 유입·활성화율">
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>source</TableHead>
-                          <TableHead>medium</TableHead>
-                          <TableHead>campaign</TableHead>
-                          <TableHead numeric>신규 유입</TableHead>
-                          <TableHead numeric>활성화율</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {data.acquisition.sources.map((row) => (
-                          <TableRow key={`${row.source}-${row.medium}-${row.campaign}`}>
-                            <TableCell className="font-medium">{row.source}</TableCell>
-                            <TableCell className="text-muted-foreground">{row.medium}</TableCell>
-                            <TableCell className="text-muted-foreground">{row.campaign}</TableCell>
-                            <TableCell numeric>{formatNumber(row.newUsers)}</TableCell>
-                            <TableCell numeric>{formatPercent(row.activationRate)}</TableCell>
+                  <Card padding="none">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-1.5 text-sm">
+                        유입 소스 (UTM)
+                        <MetricInfoButton definition={METRIC_DEFINITIONS.sources} />
+                      </CardTitle>
+                      <CardDescription>utm_source / medium / campaign 브레이크다운</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Table label="유입 소스별 신규 유입·활성화율">
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>source</TableHead>
+                            <TableHead>medium</TableHead>
+                            <TableHead>campaign</TableHead>
+                            <TableHead numeric>신규 유입</TableHead>
+                            <TableHead numeric>활성화율</TableHead>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </CardContent>
-                </Card>
-              </Section>
+                        </TableHeader>
+                        <TableBody>
+                          {data.acquisition.sources.map((row) => (
+                            <TableRow key={`${row.source}-${row.medium}-${row.campaign}`}>
+                              <TableCell className="font-medium">{row.source}</TableCell>
+                              <TableCell className="text-muted-foreground">{row.medium}</TableCell>
+                              <TableCell className="text-muted-foreground">{row.campaign}</TableCell>
+                              <TableCell numeric>{formatNumber(row.newUsers)}</TableCell>
+                              <TableCell numeric>{formatPercent(row.activationRate)}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </CardContent>
+                  </Card>
+                </Section>
+              )}
 
               {/* ★2 재방문 */}
-              <Section id="retention" title="재방문 (재참여)" description="한 번 온 사용자가 다시 돌아오는가 — 특히 알림을 통해.">
-                <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-                  <Card className="lg:col-span-2">
+              {activeId === 'retention' && (
+                <Section id="retention" title="재방문 (재참여)" description="한 번 온 사용자가 다시 돌아오는가 — 특히 알림을 통해.">
+                  <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+                    <Card className="lg:col-span-2">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-1.5 text-sm">
+                          주간 리텐션 곡선
+                          <MetricInfoButton definition={METRIC_DEFINITIONS.retentionCurve} />
+                        </CardTitle>
+                        <CardDescription>활성화 여부별 코호트 비교</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <ChartLine
+                          data={data.retention.curve.map((p) => ({ x: `W${p.week}`, all: p.all, activated: p.activated, notActivated: p.notActivated }))}
+                          xKey="x"
+                          series={[
+                            { key: 'all', label: '전체' },
+                            { key: 'activated', label: '활성화 유저' },
+                            { key: 'notActivated', label: '비활성화 유저' },
+                          ]}
+                          valueFormatter={(v) => formatPercent(v, 0)}
+                          yDomain={[0, 100]}
+                        />
+                      </CardContent>
+                    </Card>
+                    <div className="flex flex-col gap-4">
+                      <StatCard
+                        label="알림 유입 재방문율"
+                        value={formatPercent(data.retention.pushReengagementRate)}
+                        hint="알림 클릭으로 재유입된 세션 비율"
+                        definition={METRIC_DEFINITIONS.push}
+                      />
+                      <StatCard
+                        label="부활 사용자(30일+)"
+                        value={formatNumber(data.retention.resurrectedUsers)}
+                        definition={METRIC_DEFINITIONS.resurrectedUsers}
+                      />
+                    </div>
+                  </div>
+
+                  <Card>
                     <CardHeader>
-                      <CardTitle className="text-sm">주간 리텐션 곡선</CardTitle>
-                      <CardDescription>활성화 여부별 코호트 비교</CardDescription>
+                      <CardTitle className="flex items-center gap-1.5 text-sm">
+                        유입 경로별 D7 리텐션
+                        <MetricInfoButton definition={METRIC_DEFINITIONS.byEntryRetention} />
+                      </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <ChartLine
-                        data={data.retention.curve.map((p) => ({ x: `W${p.week}`, all: p.all, activated: p.activated, notActivated: p.notActivated }))}
-                        xKey="x"
-                        series={[
-                          { key: 'all', label: '전체' },
-                          { key: 'activated', label: '활성화 유저' },
-                          { key: 'notActivated', label: '비활성화 유저' },
-                        ]}
-                        valueFormatter={(v) => formatPercent(v, 0)}
-                        yDomain={[0, 100]}
+                      <ChartBarHorizontal
+                        data={data.retention.byEntry.map((r) => ({ label: entryPathLabel(r.path), value: r.d7 }))}
+                        valueFormatter={(v) => formatPercent(v)}
+                        perItemColor
                       />
                     </CardContent>
                   </Card>
-                  <div className="flex flex-col gap-4">
-                    <StatCard label="알림 유입 재방문율" value={formatPercent(data.retention.pushReengagementRate)} hint="알림 클릭으로 재유입된 세션 비율" />
-                    <StatCard label="부활 사용자(30일+)" value={formatNumber(data.retention.resurrectedUsers)} />
-                  </div>
-                </div>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-sm">유입 경로별 D7 리텐션</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ChartBarHorizontal
-                      data={data.retention.byEntry.map((r) => ({ label: entryPathLabel(r.path), value: r.d7 }))}
-                      valueFormatter={(v) => formatPercent(v)}
-                      perItemColor
-                    />
-                  </CardContent>
-                </Card>
-              </Section>
+                </Section>
+              )}
 
               {/* ★3 룰렛 핵심 사용 */}
-              <Section id="roulette" title="룰렛 핵심 사용" description="돌리고, 확정하는 핵심 행동 — 모먹지의 존재 이유.">
-                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-sm">세션 → 스핀 → 확정 퍼널</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ChartFunnel
-                        data={data.roulette.funnel.map((f) => ({ step: f.step, value: f.users }))}
-                        valueFormatter={formatNumber}
-                      />
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-sm">스핀 깊이 분포</CardTitle>
-                      <CardDescription>한 세션에서 몇 번 돌리고 확정했는가</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <ChartBarVertical
-                        data={data.roulette.spinDepth.map((d) => ({ label: d.spins, value: d.sessions }))}
-                        valueFormatter={formatCompact}
-                      />
-                    </CardContent>
-                  </Card>
-                </div>
-                <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                  <StatCard label="Spin→Confirm 전환율" value={formatPercent(data.roulette.spinToConfirmRate)} />
-                  <StatCard label="재돌림율" value={formatPercent(data.roulette.respinRate)} hint="2회 이상 스핀한 세션 비율" higherIsBetter={false} />
-                </div>
-              </Section>
+              {activeId === 'roulette' && (
+                <Section id="roulette" title="룰렛 핵심 사용" description="돌리고, 확정하는 핵심 행동 — 모먹지의 존재 이유.">
+                  <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-1.5 text-sm">
+                          세션 → 스핀 → 확정 퍼널
+                          <MetricInfoButton definition={METRIC_DEFINITIONS.funnel} />
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ChartFunnel
+                          data={data.roulette.funnel.map((f) => ({ step: f.step, value: f.users }))}
+                          valueFormatter={formatNumber}
+                        />
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-1.5 text-sm">
+                          스핀 깊이 분포
+                          <MetricInfoButton definition={METRIC_DEFINITIONS.spinDepth} />
+                        </CardTitle>
+                        <CardDescription>한 세션에서 몇 번 돌리고 확정했는가</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <ChartBarVertical
+                          data={data.roulette.spinDepth.map((d) => ({ label: d.spins, value: d.sessions }))}
+                          valueFormatter={formatCompact}
+                        />
+                      </CardContent>
+                    </Card>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                    <StatCard
+                      label="Spin→Confirm 전환율"
+                      value={formatPercent(data.roulette.spinToConfirmRate)}
+                      definition={METRIC_DEFINITIONS.s2c}
+                    />
+                    <StatCard
+                      label="재돌림율"
+                      value={formatPercent(data.roulette.respinRate)}
+                      hint="2회 이상 스핀한 세션 비율"
+                      higherIsBetter={false}
+                      definition={METRIC_DEFINITIONS.respinRate}
+                    />
+                  </div>
+                </Section>
+              )}
 
               {/* 핵심 인게이지먼트 */}
-              <Section id="engagement" title="핵심 인게이지먼트" description="주당 결정 빈도 · 점착도 · 북극성(WRD) 깊은 확인.">
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                  <StatCard
-                    label="주간 반복 결정자 (북극성)"
-                    value={formatNumber(data.overview.find((s) => s.id === 'wrd')!.value)}
-                    deltaPct={data.overview.find((s) => s.id === 'wrd')!.deltaPct}
-                    hint="한 주 2일+ 룰렛 결정 확정 사용자"
-                  />
-                  <StatCard
-                    label="DAU/WAU 점착도"
-                    value={formatPercent(data.overview.find((s) => s.id === 'stickiness')!.value)}
-                    deltaPct={data.overview.find((s) => s.id === 'stickiness')!.deltaPct}
-                    hint="일간활성/주간활성 — 습관 강도"
-                  />
-                  <StatCard label="주당 결정 빈도" value={`${data.roulette.weeklyDecisionFreq.toFixed(1)}회/주`} />
-                </div>
-              </Section>
+              {activeId === 'engagement' && (
+                <Section id="engagement" title="핵심 인게이지먼트" description="주당 결정 빈도 · 점착도 · 북극성(WRD) 깊은 확인.">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                    <StatCard
+                      label="주간 반복 결정자 (북극성)"
+                      value={formatNumber(data.overview.find((s) => s.id === 'wrd')!.value)}
+                      deltaPct={data.overview.find((s) => s.id === 'wrd')!.deltaPct}
+                      hint="한 주 2일+ 룰렛 결정 확정 사용자"
+                      definition={METRIC_DEFINITIONS.wrd}
+                    />
+                    <StatCard
+                      label="DAU/WAU 점착도"
+                      value={formatPercent(data.overview.find((s) => s.id === 'stickiness')!.value)}
+                      deltaPct={data.overview.find((s) => s.id === 'stickiness')!.deltaPct}
+                      hint="일간활성/주간활성 — 습관 강도"
+                      definition={METRIC_DEFINITIONS.stickiness}
+                    />
+                    <StatCard
+                      label="주당 결정 빈도"
+                      value={`${data.roulette.weeklyDecisionFreq.toFixed(1)}회/주`}
+                      definition={METRIC_DEFINITIONS.weeklyDecisionFreq}
+                    />
+                  </div>
+                </Section>
+              )}
 
               {/* 기능 채택 */}
-              <Section id="features" title="기능 채택 매트릭스" description="부가 기능 하나하나가 얼마나 쓰이고, 리텐션에 얼마나 기여하는가.">
-                <Card padding="none">
-                  <CardContent>
-                    <Table label="기능별 채택률과 리텐션 리프트">
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>기능</TableHead>
-                          <TableHead>채택률</TableHead>
-                          <TableHead numeric>W2 리텐션 리프트</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {data.featureAdoption.features.map((f) => (
-                          <TableRow key={f.key}>
-                            <TableCell className="font-medium">{f.label}</TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <Progress value={f.adoptionRate} size="sm" className="w-28" />
-                                <span className="text-muted-foreground w-10 shrink-0 text-xs tabular-nums">
-                                  {formatPercent(f.adoptionRate, 0)}
-                                </span>
-                              </div>
-                            </TableCell>
-                            <TableCell numeric>
-                              <TrendBadge deltaPct={f.retentionLift} />
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </CardContent>
-                </Card>
-              </Section>
-
-              {/* 바이럴 */}
-              <Section id="virality" title="바이럴" description="'함께 정하기' 룸이 만드는 초대 루프.">
-                <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-                  <Card className="lg:col-span-2">
+              {activeId === 'features' && (
+                <Section id="features" title="기능 채택 매트릭스" description="부가 기능 하나하나가 얼마나 쓰이고, 리텐션에 얼마나 기여하는가.">
+                  <Card padding="none">
                     <CardHeader>
-                      <CardTitle className="text-sm">룸 생성 → 입장 추세</CardTitle>
+                      <CardTitle className="flex items-center gap-1.5 text-sm">
+                        기능별 채택률과 리텐션 리프트
+                        <MetricInfoButton definition={METRIC_DEFINITIONS.featureAdoption} />
+                      </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <ChartLine
-                        data={data.virality.trend}
-                        series={[
-                          { key: 'created', label: '생성' },
-                          { key: 'joined', label: '입장' },
-                        ]}
-                        valueFormatter={formatCompact}
-                      />
+                      <Table label="기능별 채택률과 리텐션 리프트">
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>기능</TableHead>
+                            <TableHead>채택률</TableHead>
+                            <TableHead numeric>W2 리텐션 리프트</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {data.featureAdoption.features.map((f) => (
+                            <TableRow key={f.key}>
+                              <TableCell className="font-medium">{f.label}</TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <Progress value={f.adoptionRate} size="sm" className="w-28" />
+                                  <span className="text-muted-foreground w-10 shrink-0 text-xs tabular-nums">
+                                    {formatPercent(f.adoptionRate, 0)}
+                                  </span>
+                                </div>
+                              </TableCell>
+                              <TableCell numeric>
+                                <TrendBadge deltaPct={f.retentionLift} />
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
                     </CardContent>
                   </Card>
-                  <div className="flex flex-col gap-4">
-                    <StatCard label="K-factor" value={data.virality.kFactor.toFixed(2)} hint="생성자 1인당 신규 입장 수" />
-                    <StatCard label="초대 전환율" value={formatPercent(data.virality.inviteConversion)} />
-                    <StatCard label="룸 코호트 리텐션 리프트" value={formatPercent(data.virality.roomCohortRetentionLift)} />
+                </Section>
+              )}
+
+              {/* 바이럴 */}
+              {activeId === 'virality' && (
+                <Section id="virality" title="바이럴" description="'함께 정하기' 룸이 만드는 초대 루프.">
+                  <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+                    <Card className="lg:col-span-2">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-1.5 text-sm">
+                          룸 생성 → 입장 추세
+                          <MetricInfoButton definition={METRIC_DEFINITIONS.viralityTrend} />
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ChartLine
+                          data={data.virality.trend}
+                          series={[
+                            { key: 'created', label: '생성' },
+                            { key: 'joined', label: '입장' },
+                          ]}
+                          valueFormatter={formatCompact}
+                        />
+                      </CardContent>
+                    </Card>
+                    <div className="flex flex-col gap-4">
+                      <StatCard
+                        label="K-factor"
+                        value={data.virality.kFactor.toFixed(2)}
+                        hint="생성자 1인당 신규 입장 수"
+                        definition={METRIC_DEFINITIONS.kFactor}
+                      />
+                      <StatCard
+                        label="초대 전환율"
+                        value={formatPercent(data.virality.inviteConversion)}
+                        definition={METRIC_DEFINITIONS.inviteConversion}
+                      />
+                      <StatCard
+                        label="룸 코호트 리텐션 리프트"
+                        value={formatPercent(data.virality.roomCohortRetentionLift)}
+                        definition={METRIC_DEFINITIONS.roomCohortRetentionLift}
+                      />
+                    </div>
                   </div>
-                </div>
-              </Section>
+                </Section>
+              )}
 
               {/* 채널 비교 */}
-              <Section id="channels" title="채널 비교" description="PWA vs 앱인토스 — 두 배포 경로의 성과 차이.">
-                <Card padding="none">
-                  <CardContent>
-                    <Table label="채널별 핵심 지표 비교">
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>지표</TableHead>
-                          <TableHead numeric>PWA</TableHead>
-                          <TableHead numeric>앱인토스</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {data.channels.rows.map((row) => (
-                          <TableRow key={row.metric}>
-                            <TableCell className="font-medium">{row.metric}</TableCell>
-                            <TableCell numeric>{formatValue(row.pwa, row.unit)}</TableCell>
-                            <TableCell numeric>{formatValue(row.toss, row.unit)}</TableCell>
+              {activeId === 'channels' && (
+                <Section id="channels" title="채널 비교" description="PWA vs 앱인토스 — 두 배포 경로의 성과 차이.">
+                  <Card padding="none">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-1.5 text-sm">
+                        채널별 핵심 지표 비교
+                        <MetricInfoButton definition={METRIC_DEFINITIONS.channelsCompare} />
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <Table label="채널별 핵심 지표 비교">
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>지표</TableHead>
+                            <TableHead numeric>PWA</TableHead>
+                            <TableHead numeric>앱인토스</TableHead>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </CardContent>
-                </Card>
-              </Section>
+                        </TableHeader>
+                        <TableBody>
+                          {data.channels.rows.map((row) => (
+                            <TableRow key={row.metric}>
+                              <TableCell className="font-medium">{row.metric}</TableCell>
+                              <TableCell numeric>{formatValue(row.pwa, row.unit)}</TableCell>
+                              <TableCell numeric>{formatValue(row.toss, row.unit)}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </CardContent>
+                  </Card>
+                </Section>
+              )}
 
               {/* 수익화 (2단계) */}
-              <Section id="monetization" title="수익화" description="Phase 2 — 앱인토스 광고 도입 이후 채워지는 자리.">
-                <Card>
-                  <CardContent>
-                    <EmptyState variant="no-results" size="compact">
-                      <EmptyStateIcon>
-                        <Inbox aria-hidden />
-                      </EmptyStateIcon>
-                      <EmptyStateTitle>아직 광고가 켜지지 않았습니다</EmptyStateTitle>
-                      <EmptyStateDescription>
-                        ARPDAU · 광고 노출/eCPM · 리워드 옵트인율 · 광고량↔리텐션 트레이드오프가 Phase 2에서 여기 표시됩니다.
-                      </EmptyStateDescription>
-                    </EmptyState>
-                  </CardContent>
-                </Card>
-              </Section>
+              {activeId === 'monetization' && (
+                <Section id="monetization" title="수익화" description="Phase 2 — 앱인토스 광고 도입 이후 채워지는 자리.">
+                  <Card>
+                    <CardContent>
+                      <EmptyState variant="no-results" size="compact">
+                        <EmptyStateIcon>
+                          <Inbox aria-hidden />
+                        </EmptyStateIcon>
+                        <EmptyStateTitle>아직 광고가 켜지지 않았습니다</EmptyStateTitle>
+                        <EmptyStateDescription>
+                          ARPDAU · 광고 노출/eCPM · 리워드 옵트인율 · 광고량↔리텐션 트레이드오프가 Phase 2에서 여기 표시됩니다.
+                        </EmptyStateDescription>
+                      </EmptyState>
+                    </CardContent>
+                  </Card>
+                </Section>
+              )}
 
               {/* 설정 */}
-              <Section id="settings" title="설정" description="디자인 시스템 버전, 관리자 계정, KPI 알림 규칙.">
-                <SettingsSection overview={data.overview} adminEmail={adminEmail} onSignOut={onSignOut} />
-              </Section>
+              {activeId === 'settings' && (
+                <Section id="settings" title="설정" description="디자인 시스템 버전, 관리자 계정, KPI 알림 규칙.">
+                  <SettingsSection overview={data.overview} adminEmail={adminEmail} onSignOut={onSignOut} />
+                </Section>
+              )}
             </>
           )}
         </div>

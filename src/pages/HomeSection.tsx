@@ -4,6 +4,7 @@ import { StatCard } from '@/components/ui/stat-card'
 import { ChartLine } from '@/components/ui/chart-line'
 import type { DashboardData } from '@/lib/metrics/types'
 import { formatCompact, formatPercent, formatValue } from '@/lib/format'
+import { METRIC_DEFINITIONS } from '@/lib/metrics/posthog-definitions'
 
 /*
  * 로그인 후 가장 먼저 보는 화면 — "전체가 지금 어떻게 움직이는가"를
@@ -38,6 +39,7 @@ export function HomeSection({ data, onJump }: { data: DashboardData; onJump: (id
             deltaPct={stat.deltaPct}
             higherIsBetter={stat.higherIsBetter}
             hint={stat.hint}
+            definition={METRIC_DEFINITIONS[stat.id]}
           />
         ))}
       </div>

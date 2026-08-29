@@ -2,6 +2,8 @@ import { Info } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { TrendBadge } from '@/components/ui/trend-badge'
+import { MetricInfoButton } from '@/components/ui/metric-info-button'
+import type { MetricDefinition } from '@/lib/metrics/posthog-definitions'
 
 /*
  * KPI 타일. 어느 관리자 대시보드에나 있는 "라벨 + 큰 숫자 + 증감" 조합을
@@ -11,6 +13,11 @@ import { TrendBadge } from '@/components/ui/trend-badge'
  * value는 이미 포맷된 문자열을 받는다 — 단위(₩, %, 만 단위 축약 등)는
  * 서비스마다 다른 포맷 규칙이라 이 컴포넌트가 알 필요가 없다(소비자의
  * format 유틸이 책임진다).
+ *
+ * hint(Info 아이콘)와 definition(Database 아이콘)은 서로 다른 질문에
+ * 답한다 — hint는 "이 숫자가 무슨 뜻이야?", definition은 "이 숫자
+ * PostHog에서 실제로 어떻게 나온 거야?". 그래서 둘 다 있으면 나란히
+ * 둘 다 보여준다.
  */
 export function StatCard({
   label,
@@ -18,12 +25,14 @@ export function StatCard({
   deltaPct,
   higherIsBetter = true,
   hint,
+  definition,
 }: {
   label: string
   value: string
   deltaPct?: number
   higherIsBetter?: boolean
   hint?: string
+  definition?: MetricDefinition
 }) {
   return (
     <Card>
@@ -44,6 +53,7 @@ export function StatCard({
               <TooltipContent>{hint}</TooltipContent>
             </Tooltip>
           )}
+          <MetricInfoButton definition={definition} />
         </div>
         <div className="flex items-end justify-between gap-2">
           <span className="text-2xl font-semibold tracking-tight tabular-nums">{value}</span>
