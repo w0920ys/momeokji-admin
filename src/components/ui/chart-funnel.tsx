@@ -44,7 +44,12 @@ export function ChartFunnel({
       </div>
       <ChartContainer config={config} className="w-full" style={{ height }}>
         <RechartsPrimitive.FunnelChart>
-          <ChartTooltip content={<ChartTooltipContent valueFormatter={valueFormatter} />} />
+          {/* chart.tsx가 adminds 정식 버전으로 바뀌면서 valueFormatter가 아니라
+              formatter(값 전체를 렌더링하는 함수)를 받는다 — 여기 툴팁은
+              보조 정보라 기본 숫자 포맷(item.value.toLocaleString())으로 충분하고,
+              굳이 맞출 필요는 없다. 실제 수치 포맷은 도형 위 라벨(아래
+              LabelList content)이 valueFormatter로 그대로 담당한다. */}
+          <ChartTooltip content={<ChartTooltipContent />} />
           <RechartsPrimitive.Funnel dataKey="value" data={data} nameKey="step" isAnimationActive={false}>
             {data.map((d, i) => (
               <RechartsPrimitive.Cell key={d.step} fill={`var(--chart-${(i % 6) + 1})`} />

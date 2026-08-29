@@ -17,27 +17,23 @@ export const DESIGN_SYSTEM = {
   /** 레지스트리의 registry:ui 항목 수(원본 규모 참고용, registry.json 기준). */
   upstreamComponentCount: 48,
   /** 원본 대비 이 프로젝트가 로컬로 더 얹었거나(신규) 의도적으로 다르게 유지 중인(diverged) 컴포넌트 수. */
-  localExtensions: 16,
+  localExtensions: 10,
   /**
    * 로컬 확장 목록 — UPSTREAM-COMPONENTS.md와 동기화해서 관리.
-   * 두 갈래다: (1) 원본에 아예 없는 신규 컴포넌트 — chart-bar-horizontal·
-   * chart-bar-vertical·chart-funnel·chart-donut·stat-card·trend-badge·
-   * app-shell·page-header·password-input·chart-view-select·
-   * metric-info-button·component-preview-frame. (2) 원본에 같은 이름이
-   * 있지만 API/동작이 갈라져 있어 동기화 때 덮어쓰면 안 되는 것 —
-   * chart(원본은 valueFormatter 대신 formatter/nameKey/labelKey를 쓴다),
-   * chart-line(원본은 title/description/config/categoryKey를 받는 완전히
-   * 다른 API), card(원본엔 아직 없는 CardAction 유무별 grid 버그 수정을
-   * 로컬에 유지 중), table(원본엔 아직 없는 좁은 화면 가로 스크롤 페이드
-   * 힌트를 로컬에 유지 중).
+   * chart·chart-line은 이번 동기화로 정식 버전을 그대로 쓰게 됐고(App.tsx의
+   * 차트는 그 위에 우리 Card·MetricInfoButton만 얹어 조합할 뿐 chart.tsx
+   * 자체는 안 건드린다), chart-bar-horizontal·chart-bar-vertical·chart-donut·
+   * chart-view-select는 정식 chart-bar/chart-pie로 대체돼 폐기했다 — 그래서
+   * 이 목록에서 전부 빠졌다. 두 갈래만 남는다: (1) 원본에 아예 없는
+   * 컴포넌트 — chart-funnel(원본 6종엔 퍼널이 없다)·stat-card·trend-badge·
+   * app-shell·page-header·password-input·metric-info-button·
+   * component-preview-frame. (2) 원본에 같은 이름이 있지만 실제 버그
+   * 수정/기능이 로컬에만 있어 동기화 때 덮어쓰면 안 되는 것 — card(원본엔
+   * 아직 없는 CardAction 유무별 grid 버그 수정), table(원본엔 아직 없는
+   * 좁은 화면 가로 스크롤 페이드 힌트).
    */
   localExtensionNames: [
-    'chart',
-    'chart-line',
-    'chart-bar-horizontal',
-    'chart-bar-vertical',
     'chart-funnel',
-    'chart-donut',
     'card',
     'table',
     'stat-card',
@@ -45,7 +41,6 @@ export const DESIGN_SYSTEM = {
     'app-shell',
     'page-header',
     'password-input',
-    'chart-view-select',
     'metric-info-button',
     'component-preview-frame',
   ],

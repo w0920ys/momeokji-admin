@@ -1,16 +1,21 @@
 import type { ReactNode } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { StatCard } from '@/components/ui/stat-card'
-import { ChartLine } from '@/components/ui/chart-line'
+import { InlineChartLine } from '@/components/momeokji-charts'
 import type { DashboardData } from '@/lib/metrics/types'
-import { formatCompact, formatPercent, formatValue } from '@/lib/format'
+import { formatValue } from '@/lib/format'
 import { METRIC_DEFINITIONS } from '@/lib/metrics/posthog-definitions'
 
 /*
  * 로그인 후 가장 먼저 보는 화면 — "전체가 지금 어떻게 움직이는가"를
- * 한눈에. 새 차트를 만들지 않는다: 북극성 히스토리(신규 데이터 1개)만
- * 빼고는 이미 만든 KPI 그리드·유입/재방문/바이럴 추이 차트를 축소
+ * 한눈에. 새 차트를 만들지 않는다: 이미 만든 KPI 그리드·유입/재방문/
+ * 바이럴 추이 차트(momeokji-charts의 InlineChartLine)를 그대로
  * 재사용한다. 미리보기 카드를 누르면 해당 섹션으로 점프한다.
+ *
+ * adminds 정식 chart-line.tsx(자체 Card 포함)를 안 쓰는 이유는
+ * App.tsx와 같다 — Y축이 없으면 우리 실데이터(초기 단계라 대부분 0)의
+ * 튐이 안 보이고, PreviewCard가 이미 자기 Card·제목을 갖고 있어 정식
+ * 버전을 쓰면 Card 안에 Card가 겹친다.
  */
 export function HomeSection({ data, onJump }: { data: DashboardData; onJump: (id: string) => void }) {
   return (
@@ -21,12 +26,7 @@ export function HomeSection({ data, onJump }: { data: DashboardData; onJump: (id
           <CardDescription>한 주 2일 이상 룰렛 결정을 확정한 사용자 수</CardDescription>
         </CardHeader>
         <CardContent>
-          <ChartLine
-            data={data.northStarTrend}
-            series={[{ key: 'wrd', label: '북극성(WRD)' }]}
-            height={220}
-            valueFormatter={formatCompact}
-          />
+          <InlineChartLine data={data.northStarTrend} config={{ wrd: { label: '북극성(WRD)', color: 'var(--chart-1)' } }} categoryKey="date" />
         </CardContent>
       </Card>
 
@@ -46,35 +46,31 @@ export function HomeSection({ data, onJump }: { data: DashboardData; onJump: (id
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <PreviewCard title="유입 추이" onClick={() => onJump('acquisition')}>
-          <ChartLine
+          <InlineChartLine
             data={data.acquisition.newUsersTrend}
-            series={[
-              { key: 'pwa', label: 'PWA' },
-              { key: 'toss', label: '앱인토스' },
-            ]}
-            height={140}
-            valueFormatter={formatCompact}
+            config={{
+              pwa: { label: 'PWA', color: 'var(--chart-1)' },
+              toss: { label: '앱인토스', color: 'var(--chart-2)' },
+            }}
+            categoryKey="date"
           />
         </PreviewCard>
         <PreviewCard title="주간 리텐션" onClick={() => onJump('retention')}>
-          <ChartLine
-            data={data.retention.curve.map((p) => ({ x: `W${p.week}`, all: p.all }))}
-            xKey="x"
-            series={[{ key: 'all', label: '전체' }]}
-            height={140}
-            valueFormatter={(v) => formatPercent(v, 0)}
+          <InlineChartLine
+            data={data.retention.curve.map((p) => ({ week: `W${p.week}`, all: p.all }))}
+            config={{ all: { label: '전체', color: 'var(--chart-1)' } }}
+            categoryKey="week"
             yDomain={[0, 100]}
           />
         </PreviewCard>
         <PreviewCard title="바이럴 추이" onClick={() => onJump('virality')}>
-          <ChartLine
+          <InlineChartLine
             data={data.virality.trend}
-            series={[
-              { key: 'created', label: '생성' },
-              { key: 'joined', label: '입장' },
-            ]}
-            height={140}
-            valueFormatter={formatCompact}
+            config={{
+              created: { label: '생성', color: 'var(--chart-1)' },
+              joined: { label: '입장', color: 'var(--chart-2)' },
+            }}
+            categoryKey="date"
           />
         </PreviewCard>
       </div>

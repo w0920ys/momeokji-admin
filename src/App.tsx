@@ -27,7 +27,7 @@ import { useTheme } from '@/lib/theme'
 import { useAuth } from '@/lib/auth'
 import { posthogSource } from '@/lib/metrics/posthog'
 import type { DashboardData, DateRange } from '@/lib/metrics/types'
-import { entryPathLabel, formatCompact, formatNumber, formatPercent, formatValue } from '@/lib/format'
+import { entryPathLabel, formatNumber, formatPercent, formatValue } from '@/lib/format'
 import { METRIC_DEFINITIONS } from '@/lib/metrics/posthog-definitions'
 
 import { AppShell, type AppShellNavItem } from '@/components/ui/app-shell'
@@ -36,8 +36,7 @@ import { StatCard } from '@/components/ui/stat-card'
 import { MetricInfoButton } from '@/components/ui/metric-info-button'
 import { TrendBadge } from '@/components/ui/trend-badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { ChartViewSelect } from '@/components/ui/chart-view-select'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu'
@@ -45,11 +44,8 @@ import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState, EmptyStateDescription, EmptyStateIcon, EmptyStateTitle } from '@/components/ui/empty-state'
 import { TooltipProvider } from '@/components/ui/tooltip'
-import { ChartLine } from '@/components/ui/chart-line'
-import { ChartBarHorizontal } from '@/components/ui/chart-bar-horizontal'
-import { ChartBarVertical } from '@/components/ui/chart-bar-vertical'
 import { ChartFunnel } from '@/components/ui/chart-funnel'
-import { ChartDonut } from '@/components/ui/chart-donut'
+import { InlineChartLine, InlineChartBarCategorical, InlineChartDonut } from '@/components/momeokji-charts'
 import { LoginPage } from '@/pages/LoginPage'
 import { SetNewPasswordPage } from '@/pages/SetNewPasswordPage'
 import { HomeSection } from '@/pages/HomeSection'
@@ -147,14 +143,6 @@ function AnalyticsDashboard({
   const { theme, toggle } = useTheme()
   const [activeId, setActiveId] = useState('home')
 
-  // 같은 데이터를 다른 모양으로도 보여줄 수 있는 차트 카드 4개의 "지금
-  // 어떤 모양으로 보는가" — ChartViewSelect 참고. 카드마다 독립된
-  // state라 하나를 바꿔도 다른 카드에 영향이 없다.
-  const [entryShareView, setEntryShareView] = useState<'donut' | 'bar'>('donut')
-  const [byEntryView, setByEntryView] = useState<'bar-h' | 'bar-v'>('bar-h')
-  const [funnelView, setFunnelView] = useState<'funnel' | 'bar'>('funnel')
-  const [spinDepthView, setSpinDepthView] = useState<'bar' | 'donut'>('bar')
-
   const handleNavigate = (id: string) => {
     setActiveId(id)
     document.getElementById(id)?.scrollIntoView({ block: 'start' })
@@ -228,13 +216,13 @@ function AnalyticsDashboard({
                         <CardDescription>PWA vs 앱인토스</CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <ChartLine
+                        <InlineChartLine
                           data={data.acquisition.newUsersTrend}
-                          series={[
-                            { key: 'pwa', label: 'PWA' },
-                            { key: 'toss', label: '앱인토스' },
-                          ]}
-                          valueFormatter={formatCompact}
+                          config={{
+                            pwa: { label: 'PWA', color: 'var(--chart-1)' },
+                            toss: { label: '앱인토스', color: 'var(--chart-2)' },
+                          }}
+                          categoryKey="date"
                         />
                       </CardContent>
                     </Card>
@@ -245,31 +233,11 @@ function AnalyticsDashboard({
                           <MetricInfoButton definition={METRIC_DEFINITIONS.entryShares} />
                         </CardTitle>
                         <CardDescription>direct / utm / push / room / install</CardDescription>
-                        <CardAction>
-                          <ChartViewSelect
-                            label="유입 경로 구성"
-                            value={entryShareView}
-                            onValueChange={(v) => setEntryShareView(v as typeof entryShareView)}
-                            options={[
-                              { value: 'donut', label: '도넛' },
-                              { value: 'bar', label: '막대' },
-                            ]}
-                          />
-                        </CardAction>
                       </CardHeader>
                       <CardContent>
-                        {entryShareView === 'donut' ? (
-                          <ChartDonut
-                            data={data.acquisition.entryShares.map((e) => ({ label: entryPathLabel(e.path), value: e.users }))}
-                            height={180}
-                          />
-                        ) : (
-                          <ChartBarHorizontal
-                            data={data.acquisition.entryShares.map((e) => ({ label: entryPathLabel(e.path), value: e.users }))}
-                            height={180}
-                            perItemColor
-                          />
-                        )}
+                        <InlineChartDonut
+                          data={data.acquisition.entryShares.map((e) => ({ label: entryPathLabel(e.path), value: e.users }))}
+                        />
                       </CardContent>
                     </Card>
                   </div>
@@ -323,15 +291,14 @@ function AnalyticsDashboard({
                         <CardDescription>활성화 여부별 코호트 비교</CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <ChartLine
-                          data={data.retention.curve.map((p) => ({ x: `W${p.week}`, all: p.all, activated: p.activated, notActivated: p.notActivated }))}
-                          xKey="x"
-                          series={[
-                            { key: 'all', label: '전체' },
-                            { key: 'activated', label: '활성화 유저' },
-                            { key: 'notActivated', label: '비활성화 유저' },
-                          ]}
-                          valueFormatter={(v) => formatPercent(v, 0)}
+                        <InlineChartLine
+                          data={data.retention.curve.map((p) => ({ week: `W${p.week}`, all: p.all, activated: p.activated, notActivated: p.notActivated }))}
+                          config={{
+                            all: { label: '전체', color: 'var(--chart-1)' },
+                            activated: { label: '활성화 유저', color: 'var(--chart-2)' },
+                            notActivated: { label: '비활성화 유저', color: 'var(--chart-3)' },
+                          }}
+                          categoryKey="week"
                           yDomain={[0, 100]}
                         />
                       </CardContent>
@@ -357,31 +324,11 @@ function AnalyticsDashboard({
                         유입 경로별 D7 리텐션
                         <MetricInfoButton definition={METRIC_DEFINITIONS.byEntryRetention} />
                       </CardTitle>
-                      <CardAction>
-                        <ChartViewSelect
-                          label="유입 경로별 D7 리텐션"
-                          value={byEntryView}
-                          onValueChange={(v) => setByEntryView(v as typeof byEntryView)}
-                          options={[
-                            { value: 'bar-h', label: '가로 막대' },
-                            { value: 'bar-v', label: '세로 막대' },
-                          ]}
-                        />
-                      </CardAction>
                     </CardHeader>
                     <CardContent>
-                      {byEntryView === 'bar-h' ? (
-                        <ChartBarHorizontal
-                          data={data.retention.byEntry.map((r) => ({ label: entryPathLabel(r.path), value: r.d7 }))}
-                          valueFormatter={(v) => formatPercent(v)}
-                          perItemColor
-                        />
-                      ) : (
-                        <ChartBarVertical
-                          data={data.retention.byEntry.map((r) => ({ label: entryPathLabel(r.path), value: r.d7 }))}
-                          valueFormatter={(v) => formatPercent(v)}
-                        />
-                      )}
+                      <InlineChartBarCategorical
+                        data={data.retention.byEntry.map((r) => ({ label: entryPathLabel(r.path), value: r.d7 }))}
+                      />
                     </CardContent>
                   </Card>
                 </Section>
@@ -397,30 +344,12 @@ function AnalyticsDashboard({
                           세션 → 스핀 → 확정 퍼널
                           <MetricInfoButton definition={METRIC_DEFINITIONS.funnel} />
                         </CardTitle>
-                        <CardAction>
-                          <ChartViewSelect
-                            label="세션 → 스핀 → 확정 퍼널"
-                            value={funnelView}
-                            onValueChange={(v) => setFunnelView(v as typeof funnelView)}
-                            options={[
-                              { value: 'funnel', label: '퍼널' },
-                              { value: 'bar', label: '막대' },
-                            ]}
-                          />
-                        </CardAction>
                       </CardHeader>
                       <CardContent>
-                        {funnelView === 'funnel' ? (
-                          <ChartFunnel
-                            data={data.roulette.funnel.map((f) => ({ step: f.step, value: f.users }))}
-                            valueFormatter={formatNumber}
-                          />
-                        ) : (
-                          <ChartBarHorizontal
-                            data={data.roulette.funnel.map((f) => ({ label: f.step, value: f.users }))}
-                            valueFormatter={formatNumber}
-                          />
-                        )}
+                        <ChartFunnel
+                          data={data.roulette.funnel.map((f) => ({ step: f.step, value: f.users }))}
+                          valueFormatter={formatNumber}
+                        />
                       </CardContent>
                     </Card>
                     <Card>
@@ -430,30 +359,12 @@ function AnalyticsDashboard({
                           <MetricInfoButton definition={METRIC_DEFINITIONS.spinDepth} />
                         </CardTitle>
                         <CardDescription>한 세션에서 몇 번 돌리고 확정했는가</CardDescription>
-                        <CardAction>
-                          <ChartViewSelect
-                            label="스핀 깊이 분포"
-                            value={spinDepthView}
-                            onValueChange={(v) => setSpinDepthView(v as typeof spinDepthView)}
-                            options={[
-                              { value: 'bar', label: '막대' },
-                              { value: 'donut', label: '도넛' },
-                            ]}
-                          />
-                        </CardAction>
                       </CardHeader>
                       <CardContent>
-                        {spinDepthView === 'bar' ? (
-                          <ChartBarVertical
-                            data={data.roulette.spinDepth.map((d) => ({ label: d.spins, value: d.sessions }))}
-                            valueFormatter={formatCompact}
-                          />
-                        ) : (
-                          <ChartDonut
-                            data={data.roulette.spinDepth.map((d) => ({ label: d.spins, value: d.sessions }))}
-                            height={200}
-                          />
-                        )}
+                        <InlineChartBarCategorical
+                          data={data.roulette.spinDepth.map((d) => ({ label: d.spins, value: d.sessions }))}
+                          colorful={false}
+                        />
                       </CardContent>
                     </Card>
                   </div>
@@ -556,13 +467,13 @@ function AnalyticsDashboard({
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <ChartLine
+                        <InlineChartLine
                           data={data.virality.trend}
-                          series={[
-                            { key: 'created', label: '생성' },
-                            { key: 'joined', label: '입장' },
-                          ]}
-                          valueFormatter={formatCompact}
+                          config={{
+                            created: { label: '생성', color: 'var(--chart-1)' },
+                            joined: { label: '입장', color: 'var(--chart-2)' },
+                          }}
+                          categoryKey="date"
                         />
                       </CardContent>
                     </Card>

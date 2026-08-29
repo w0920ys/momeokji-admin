@@ -1,83 +1,73 @@
-import * as RechartsPrimitive from 'recharts'
-import {
-  ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from '@/components/ui/chart'
+import { CartesianGrid, Line, LineChart, XAxis } from 'recharts'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart'
 
 /*
- * 시간축 위 다계열 추세선. 유입 추세·리텐션 곡선·바이럴 추세처럼
- * "시간에 따라 무엇이 늘고 주는가"를 보여줄 때 쓴다.
+ * shadcn 공식 chart-line-default·chart-line-multiple·chart-line-step·
+ * chart-line-dots를 옮긴 계열 컴포넌트. config 키가 둘 이상이면 범례가
+ * 자동으로 붙는다(multiple).
  *
- * 색은 소비자가 정하지 않는다 — series 배열의 등장 순서대로
- * --chart-1..6(검증된 범주형 6색, chart-tokens.css)을 고정 배정한다.
- * dataviz 원칙: 범주형 색은 고정 순서로만 쓰고 절대 순환하지 않는다.
- *
- * xKey 기본값은 'date'다 — recharts는 XAxis의 dataKey가 실제 데이터에
- * 없는 필드를 가리키면 카테고리 축의 도메인 자체가 비어 Line이 점 하나도
- * 못 그리고 조용히 사라진다(축·범례는 그려지는데 곡선만 없는 형태로
- * 보인다 — 조합하는 쪽에서 오탐하기 쉬운 실패 모드). 시간축 데이터는
- * 거의 항상 'date' 필드를 쓰므로 그걸 기본값으로 둔다 — 다른 이름을
- * 쓰는 데이터는 xKey를 명시하면 된다.
+ * showLegend를 명시하지 않으면 계열이 둘 이상일 때 자동으로 범례가
+ * 붙는다(기존 관례). showLegend={false}로 계열이 여럿이어도 범례를
+ * 끌 수 있고, showLegend={true}로 강제로 켤 수도 있다.
  */
-export interface LineChartSeries {
-  key: string
-  label: string
-}
-
 export function ChartLine({
+  title,
+  description,
   data,
-  series,
-  xKey = 'date',
-  height = 240,
-  valueFormatter = (v: number) => String(v),
-  yDomain,
+  config,
+  categoryKey,
+  curveType = 'monotone',
+  showDots = false,
+  showLegend,
 }: {
+  title: string
+  description: string
   data: Array<Record<string, string | number>>
-  series: LineChartSeries[]
-  xKey?: string
-  height?: number
-  valueFormatter?: (v: number) => string
-  yDomain?: [number | 'auto', number | 'auto']
+  config: ChartConfig
+  categoryKey: string
+  curveType?: 'monotone' | 'step'
+  showDots?: boolean
+  /** 안 정하면 계열이 둘 이상일 때 자동으로 켜진다 */
+  showLegend?: boolean
 }) {
-  const config: ChartConfig = Object.fromEntries(
-    series.map((s, i) => [s.key, { label: s.label, color: `var(--chart-${(i % 6) + 1})` }]),
-  )
+  const seriesKeys = Object.keys(config).filter((key) => key !== categoryKey)
+  const resolvedShowLegend = showLegend ?? seriesKeys.length > 1
 
   return (
-    <ChartContainer config={config} className="w-full" style={{ height }}>
-      <RechartsPrimitive.LineChart data={data} margin={{ top: 8, right: 12, bottom: 0, left: 4 }}>
-        <RechartsPrimitive.CartesianGrid vertical={false} />
-        <RechartsPrimitive.XAxis dataKey={xKey} tickLine={false} axisLine={false} tickMargin={8} fontSize={12} />
-        <RechartsPrimitive.YAxis
-          tickLine={false}
-          axisLine={false}
-          width={40}
-          fontSize={12}
-          domain={yDomain}
-          tickFormatter={valueFormatter}
-        />
-        <ChartTooltip
-          cursor={{ stroke: 'var(--color-muted-foreground)', strokeOpacity: 0.25 }}
-          content={<ChartTooltipContent indicator="line" valueFormatter={valueFormatter} />}
-        />
-        {series.length > 1 && <ChartLegend content={<ChartLegendContent />} />}
-        {series.map((s) => (
-          <RechartsPrimitive.Line
-            key={s.key}
-            type="monotone"
-            dataKey={s.key}
-            stroke={`var(--color-${s.key})`}
-            strokeWidth={2}
-            dot={{ r: 2.5, strokeWidth: 0, fill: `var(--color-${s.key})` }}
-            activeDot={{ r: 4, strokeWidth: 2, stroke: 'var(--color-background)' }}
-            isAnimationActive={false}
-          />
-        ))}
-      </RechartsPrimitive.LineChart>
-    </ChartContainer>
+    <Card className="w-full">
+      <CardHeader className="gap-2">
+        <CardTitle className="text-16">{title}</CardTitle>
+        <CardDescription className="text-14">{description}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ChartContainer config={config}>
+          {/*
+           * key를 showLegend에 묶는다 — Chart Bar·Area·Pie에서 이미 겪은 recharts
+           * 3.10.1 리마운트 버그가 있어(마운트 후 구조가 바뀌는 chart-level prop은
+           * 전부 의심해야 안전하다는 게 이 계획 전체에서 반복 확인된 결론이다).
+           * curveType·showDots는 이전 Task에서 이미 SVG d 속성으로 직접 검증해
+           * key 없이도 안전함을 확인했다 — 여기서는 새로 추가하는 showLegend만
+           * key에 묶는다.
+           */}
+          <LineChart key={String(resolvedShowLegend)} accessibilityLayer data={data} margin={{ left: 12, right: 12 }}>
+            <CartesianGrid vertical={false} />
+            <XAxis dataKey={categoryKey} tickLine={false} axisLine={false} tickMargin={8} />
+            <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel={seriesKeys.length === 1} />} />
+            {resolvedShowLegend && <ChartLegend content={<ChartLegendContent />} />}
+            {seriesKeys.map((key) => (
+              <Line
+                key={key}
+                dataKey={key}
+                type={curveType}
+                stroke={`var(--color-${key})`}
+                strokeWidth={2}
+                dot={showDots ? { r: 3, fill: `var(--color-${key})` } : false}
+              />
+            ))}
+          </LineChart>
+        </ChartContainer>
+      </CardContent>
+    </Card>
   )
 }
