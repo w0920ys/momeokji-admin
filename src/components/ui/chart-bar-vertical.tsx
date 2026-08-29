@@ -34,7 +34,7 @@ export function ChartBarVertical({
             dataKey="value"
             position="top"
             formatter={(v: unknown) => (typeof v === 'number' ? valueFormatter(v) : '')}
-            className="fill-muted-foreground text-2xs"
+            className="fill-muted-foreground text-11"
           />
         </RechartsPrimitive.Bar>
       </RechartsPrimitive.BarChart>

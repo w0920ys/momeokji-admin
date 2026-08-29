@@ -4,6 +4,7 @@ import {
   BarChart3,
   Blocks,
   Coins,
+  Database,
   Dices,
   GitCompare,
   Home as HomeIcon,
@@ -33,7 +34,8 @@ import { StatCard } from '@/components/ui/stat-card'
 import { MetricInfoButton } from '@/components/ui/metric-info-button'
 import { TrendBadge } from '@/components/ui/trend-badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { ChartViewSelect } from '@/components/ui/chart-view-select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Progress } from '@/components/ui/progress'
@@ -50,6 +52,7 @@ import { SetNewPasswordPage } from '@/pages/SetNewPasswordPage'
 import { HomeSection } from '@/pages/HomeSection'
 import { SettingsSection } from '@/pages/SettingsSection'
 import { DesignSystemSection } from '@/pages/DesignSystemSection'
+import { EventCatalogSection } from '@/pages/EventCatalogSection'
 
 /*
  * 모먹지 어드민. 최상위를 두 모드로 나눈다 — ① 애널리틱스(이 파일이
@@ -79,6 +82,7 @@ const ANALYTICS_NAV: AppShellNavItem[] = [
   { id: 'virality', label: '바이럴', icon: Share2 },
   { id: 'channels', label: '채널 비교', icon: GitCompare },
   { id: 'monetization', label: '수익화', icon: Coins },
+  { id: 'events', label: '이벤트 카탈로그', icon: Database },
   { id: 'settings', label: '설정', icon: SettingsIcon },
 ]
 
@@ -132,6 +136,14 @@ function AnalyticsDashboard({
   const [range, setRange] = useState<DateRange>('28d')
   const [data, setData] = useState<DashboardData | null>(null)
   const [activeId, setActiveId] = useState('home')
+
+  // 같은 데이터를 다른 모양으로도 보여줄 수 있는 차트 카드 4개의 "지금
+  // 어떤 모양으로 보는가" — ChartViewSelect 참고. 카드마다 독립된
+  // state라 하나를 바꿔도 다른 카드에 영향이 없다.
+  const [entryShareView, setEntryShareView] = useState<'donut' | 'bar'>('donut')
+  const [byEntryView, setByEntryView] = useState<'bar-h' | 'bar-v'>('bar-h')
+  const [funnelView, setFunnelView] = useState<'funnel' | 'bar'>('funnel')
+  const [spinDepthView, setSpinDepthView] = useState<'bar' | 'donut'>('bar')
 
   useEffect(() => {
     let cancelled = false
@@ -247,12 +259,31 @@ function AnalyticsDashboard({
                           <MetricInfoButton definition={METRIC_DEFINITIONS.entryShares} />
                         </CardTitle>
                         <CardDescription>direct / utm / push / room / install</CardDescription>
+                        <CardAction>
+                          <ChartViewSelect
+                            label="유입 경로 구성"
+                            value={entryShareView}
+                            onValueChange={(v) => setEntryShareView(v as typeof entryShareView)}
+                            options={[
+                              { value: 'donut', label: '도넛' },
+                              { value: 'bar', label: '막대' },
+                            ]}
+                          />
+                        </CardAction>
                       </CardHeader>
                       <CardContent>
-                        <ChartDonut
-                          data={data.acquisition.entryShares.map((e) => ({ label: entryPathLabel(e.path), value: e.users }))}
-                          height={180}
-                        />
+                        {entryShareView === 'donut' ? (
+                          <ChartDonut
+                            data={data.acquisition.entryShares.map((e) => ({ label: entryPathLabel(e.path), value: e.users }))}
+                            height={180}
+                          />
+                        ) : (
+                          <ChartBarHorizontal
+                            data={data.acquisition.entryShares.map((e) => ({ label: entryPathLabel(e.path), value: e.users }))}
+                            height={180}
+                            perItemColor
+                          />
+                        )}
                       </CardContent>
                     </Card>
                   </div>
@@ -340,13 +371,31 @@ function AnalyticsDashboard({
                         유입 경로별 D7 리텐션
                         <MetricInfoButton definition={METRIC_DEFINITIONS.byEntryRetention} />
                       </CardTitle>
+                      <CardAction>
+                        <ChartViewSelect
+                          label="유입 경로별 D7 리텐션"
+                          value={byEntryView}
+                          onValueChange={(v) => setByEntryView(v as typeof byEntryView)}
+                          options={[
+                            { value: 'bar-h', label: '가로 막대' },
+                            { value: 'bar-v', label: '세로 막대' },
+                          ]}
+                        />
+                      </CardAction>
                     </CardHeader>
                     <CardContent>
-                      <ChartBarHorizontal
-                        data={data.retention.byEntry.map((r) => ({ label: entryPathLabel(r.path), value: r.d7 }))}
-                        valueFormatter={(v) => formatPercent(v)}
-                        perItemColor
-                      />
+                      {byEntryView === 'bar-h' ? (
+                        <ChartBarHorizontal
+                          data={data.retention.byEntry.map((r) => ({ label: entryPathLabel(r.path), value: r.d7 }))}
+                          valueFormatter={(v) => formatPercent(v)}
+                          perItemColor
+                        />
+                      ) : (
+                        <ChartBarVertical
+                          data={data.retention.byEntry.map((r) => ({ label: entryPathLabel(r.path), value: r.d7 }))}
+                          valueFormatter={(v) => formatPercent(v)}
+                        />
+                      )}
                     </CardContent>
                   </Card>
                 </Section>
@@ -362,12 +411,30 @@ function AnalyticsDashboard({
                           세션 → 스핀 → 확정 퍼널
                           <MetricInfoButton definition={METRIC_DEFINITIONS.funnel} />
                         </CardTitle>
+                        <CardAction>
+                          <ChartViewSelect
+                            label="세션 → 스핀 → 확정 퍼널"
+                            value={funnelView}
+                            onValueChange={(v) => setFunnelView(v as typeof funnelView)}
+                            options={[
+                              { value: 'funnel', label: '퍼널' },
+                              { value: 'bar', label: '막대' },
+                            ]}
+                          />
+                        </CardAction>
                       </CardHeader>
                       <CardContent>
-                        <ChartFunnel
-                          data={data.roulette.funnel.map((f) => ({ step: f.step, value: f.users }))}
-                          valueFormatter={formatNumber}
-                        />
+                        {funnelView === 'funnel' ? (
+                          <ChartFunnel
+                            data={data.roulette.funnel.map((f) => ({ step: f.step, value: f.users }))}
+                            valueFormatter={formatNumber}
+                          />
+                        ) : (
+                          <ChartBarHorizontal
+                            data={data.roulette.funnel.map((f) => ({ label: f.step, value: f.users }))}
+                            valueFormatter={formatNumber}
+                          />
+                        )}
                       </CardContent>
                     </Card>
                     <Card>
@@ -377,12 +444,30 @@ function AnalyticsDashboard({
                           <MetricInfoButton definition={METRIC_DEFINITIONS.spinDepth} />
                         </CardTitle>
                         <CardDescription>한 세션에서 몇 번 돌리고 확정했는가</CardDescription>
+                        <CardAction>
+                          <ChartViewSelect
+                            label="스핀 깊이 분포"
+                            value={spinDepthView}
+                            onValueChange={(v) => setSpinDepthView(v as typeof spinDepthView)}
+                            options={[
+                              { value: 'bar', label: '막대' },
+                              { value: 'donut', label: '도넛' },
+                            ]}
+                          />
+                        </CardAction>
                       </CardHeader>
                       <CardContent>
-                        <ChartBarVertical
-                          data={data.roulette.spinDepth.map((d) => ({ label: d.spins, value: d.sessions }))}
-                          valueFormatter={formatCompact}
-                        />
+                        {spinDepthView === 'bar' ? (
+                          <ChartBarVertical
+                            data={data.roulette.spinDepth.map((d) => ({ label: d.spins, value: d.sessions }))}
+                            valueFormatter={formatCompact}
+                          />
+                        ) : (
+                          <ChartDonut
+                            data={data.roulette.spinDepth.map((d) => ({ label: d.spins, value: d.sessions }))}
+                            height={200}
+                          />
+                        )}
                       </CardContent>
                     </Card>
                   </div>
@@ -567,6 +652,17 @@ function AnalyticsDashboard({
                       </EmptyState>
                     </CardContent>
                   </Card>
+                </Section>
+              )}
+
+              {/* 이벤트 카탈로그 */}
+              {activeId === 'events' && (
+                <Section
+                  id="events"
+                  title="이벤트 카탈로그"
+                  description="PostHog 이벤트 36개가 index.html 어디에, 어떻게 심어져 있는지 — 이벤트명·trigger·property부터 발생 화면, 사용되는 지표까지."
+                >
+                  <EventCatalogSection />
                 </Section>
               )}
 

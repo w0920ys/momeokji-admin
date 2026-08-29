@@ -58,15 +58,30 @@ function Card({ className, variant = 'outlined', padding = 'default', ...props }
  * CardAction이 있으면 두 번째 열을 만들어 오른쪽 끝에 고정한다.
  * Title·Description은 첫 번째 열(1fr)에 쌓이고 Action은 두 열에 걸쳐
  * 위쪽에 붙는다 — 제목이 길어져 col-1이 늘어나도 col-2는 auto 폭 그대로라
- * Action이 밀려나지 않는다. Action이 없으면 두 번째 열은 내용이 없어
- * 폭이 0이 되므로 Title·Description은 자연히 전체 폭을 쓴다.
+ * Action이 밀려나지 않는다.
+ *
+ * [로컬 수정] 원본은 grid-cols-[1fr_auto]를 무조건 걸어두고 "Action이
+ * 없으면 두 번째 열 폭이 0이 되어 Title·Description이 전체 폭을 쓴다"고
+ * 가정하지만, 실제 CSS Grid는 그렇게 동작하지 않는다 — Title·Description
+ * 둘 다 명시적 grid-column이 없으면 auto-placement가 그냥 행을 채우는
+ * 순서(row flow)대로 배치해, Action이 없을 때도 Title이 1열에 Description이
+ * 곧바로 2열(auto)에 나란히 앉는다. auto열 폭은 Description 글자 길이만큼
+ * 생기고, 거기 밀려 남은 1열이 Title 하나 들어가기에도 좁아지면 Title이
+ * 한 글자씩 세로로 줄바꿈되는 형태로 깨진다("유입 경로 구성"처럼 짧은
+ * 제목 + 카드 폭이 좁은 사이드 카드에서 실제로 재현됨).
+ *
+ * has-[]: 조건부 variant로 card-action 자손이 있을 때만 2열 grid를 걸어
+ * 원래 의도대로 고친다 — Action이 없으면 grid-cols-[1fr_auto] 자체가
+ * 안 붙으므로 auto-placement가 둘 다 1열에 세로로 쌓는다. adminds
+ * 원본(card.json)의 알려진 결함이라, 동기화 때마다 이 has-[]: 부분만
+ * 다시 넣어야 한다.
  */
 function CardHeader({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
       data-slot="card-header"
       className={cn(
-        'grid grid-cols-[1fr_auto] grid-rows-[auto_auto] items-start gap-1.5 px-6',
+        'grid grid-rows-[auto_auto] items-start gap-1.5 px-6 has-[[data-slot=card-action]]:grid-cols-[1fr_auto]',
         className,
       )}
       {...props}

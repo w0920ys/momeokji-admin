@@ -50,7 +50,7 @@ export function ChartBarHorizontal({
             dataKey="value"
             position="right"
             formatter={(v: unknown) => (typeof v === 'number' ? valueFormatter(v) : '')}
-            className="fill-muted-foreground text-2xs"
+            className="fill-muted-foreground text-11"
           />
         </RechartsPrimitive.Bar>
       </RechartsPrimitive.BarChart>
