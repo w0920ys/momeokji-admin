@@ -17,20 +17,17 @@ export interface AppShellNavItem {
 
 export function AppShell({
   brand,
-  topNav,
   nav,
   activeId,
   onNavigate,
   actions,
   children,
 }: {
-  brand: React.ReactNode
   /**
-   * brand와 섹션 nav 사이에 얹는 상위 스위처(예: "애널리틱스"/"디자인시스템"
-   * 모드 전환 Tabs). 이 셸은 그 스위처가 뭘 전환하는지 알 필요가 없어
-   * ReactNode로만 받는다 — 없으면 기존처럼 brand 바로 아래가 섹션 nav다.
+   * 로고 자리. 정적 텍스트뿐 아니라 상위 모드 전환 드롭다운처럼 인터랙티브한
+   * 조합도 여기 넣을 수 있다 — 이 셸은 그 안에 뭐가 있는지 알 필요가 없다.
    */
-  topNav?: React.ReactNode
+  brand: React.ReactNode
   nav: AppShellNavItem[]
   activeId?: string
   onNavigate?: (id: string) => void
@@ -48,22 +45,14 @@ export function AppShell({
     <div className="bg-background text-foreground flex flex-col md:h-svh md:flex-row">
       <aside className="hidden shrink-0 flex-col border-r md:flex md:w-56">
         <div className="flex h-14 items-center gap-2 px-4 font-semibold">{brand}</div>
-        <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-2" aria-label="대시보드 섹션">
-          {nav.map((item) => (
-            <NavButton key={item.id} item={item} active={item.id === activeId} onClick={() => onNavigate?.(item.id)} />
-          ))}
-        </nav>
-        {/* 상위 모드 스위처(topNav)는 맨 아래에 고정한다 — 이 nav 목록보다
-            자주 안 바뀌는 "지금 어느 모드에 있는가"라, 매번 눈에 걸리는
-            위(brand 바로 아래)보다는 계정 actions와 같은 급의 하단 고정
-            바가 더 맞는다. actions와 붙는 순서라 topNav를 위, 구분선,
-            actions를 아래로 둔다. */}
-        {(topNav || actions) && (
-          <div className="border-t p-2">
-            {topNav && <div className="pb-2">{topNav}</div>}
-            {actions}
-          </div>
+        {nav.length > 0 && (
+          <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-2" aria-label="대시보드 섹션">
+            {nav.map((item) => (
+              <NavButton key={item.id} item={item} active={item.id === activeId} onClick={() => onNavigate?.(item.id)} />
+            ))}
+          </nav>
         )}
+        {actions && <div className={cn('border-t p-2', nav.length === 0 && 'mt-auto')}>{actions}</div>}
       </aside>
 
       <header className="border-b md:hidden">
@@ -71,12 +60,13 @@ export function AppShell({
           {brand}
           {actions}
         </div>
-        <nav className="scrollbar-none flex gap-1 overflow-x-auto px-2 pb-2" aria-label="대시보드 섹션">
-          {nav.map((item) => (
-            <NavButton key={item.id} item={item} active={item.id === activeId} onClick={() => onNavigate?.(item.id)} compact />
-          ))}
-        </nav>
-        {topNav && <div className="border-t px-2 py-2">{topNav}</div>}
+        {nav.length > 0 && (
+          <nav className="scrollbar-none flex gap-1 overflow-x-auto px-2 pb-2" aria-label="대시보드 섹션">
+            {nav.map((item) => (
+              <NavButton key={item.id} item={item} active={item.id === activeId} onClick={() => onNavigate?.(item.id)} compact />
+            ))}
+          </nav>
+        )}
       </header>
 
       <main className="min-h-0 min-w-0 flex-1 md:overflow-y-auto">{children}</main>

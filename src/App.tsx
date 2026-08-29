@@ -3,6 +3,7 @@ import {
   Activity,
   BarChart3,
   Blocks,
+  ChevronsUpDown,
   Coins,
   Database,
   Dices,
@@ -39,6 +40,7 @@ import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle }
 import { ChartViewSelect } from '@/components/ui/chart-view-select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState, EmptyStateDescription, EmptyStateIcon, EmptyStateTitle } from '@/components/ui/empty-state'
@@ -57,22 +59,28 @@ import { EventCatalogSection } from '@/pages/EventCatalogSection'
 import { UsersSection } from '@/pages/UsersSection'
 
 /*
- * 모먹지 어드민. 최상위를 두 모드로 나눈다 — ① 애널리틱스(이 파일이
- * 원래 갖고 있던 전부: 유입·재방문·룰렛 핵심 사용 등)와 ② 디자인시스템
- * (모먹지 앱 자체의 토큰·컴포넌트 현황, DesignSystemSection.tsx). 둘 다
- * "관리자가 모먹지에 대해 보는 화면"이라는 점에서 한 어드민 아래 있지만,
- * 서로 다른 데이터 소스(전자는 이벤트 지표, 후자는 손으로 관리하는
- * 코드 스냅샷)라 nav도 화면도 완전히 갈라 둔다 — AdminRoot의 mode
- * state가 그 경계다.
+ * 모먹지 어드민. 최상위를 세 모드로 나눈다 — ① 애널리틱스(이 파일이
+ * 원래 갖고 있던 전부: 유입·재방문·룰렛 핵심 사용 등), ② 디자인시스템
+ * (모먹지 앱 자체의 토큰·컴포넌트 현황, DesignSystemSection.tsx), ③ 설정
+ * (계정·알림 규칙·DS 버전). 앞의 둘은 "화면을 갈아 끼우는" 큰 모드라
+ * 로고 자리의 드롭다운으로 전환하고, 설정은 그 어느 쪽에도 속하지 않는
+ * 항상 켜져 있는 도구라 드롭다운 옆에 별도 아이콘 버튼으로 둔다 —
+ * AdminRoot의 mode state가 셋을 갈라놓는 경계다.
  *
  * 이 파일은 디자인 시스템 컴포넌트(components/ui/*)를 "조합"만 한다 —
  * 새 차트·타일 종류가 필요해지면 이 파일이 아니라 시스템 쪽에 더한다.
- * 애널리틱스 데이터는 지금 MockSource(src/lib/metrics/mock.ts)를 쓰고,
- * PostHog 계측 후 PostHogSource로 source.ts 인터페이스만 바꿔 낀다 —
- * 이 화면은 그 교체를 몰라도 된다.
+ * 대시보드 데이터(range/data) fetch는 AdminRoot 하나에서만 한다 — 설정
+ * 모드도 KPI 알림 규칙에 overview가 필요해서, 모드를 오가며 매번 다시
+ * fetch하지 않도록 이 레벨로 끌어올렸다.
  */
 
-type AdminMode = 'analytics' | 'design-system'
+type AdminMode = 'analytics' | 'design-system' | 'settings'
+
+const MODE_LABEL: Record<AdminMode, string> = {
+  analytics: '애널리틱스',
+  'design-system': '디자인시스템',
+  settings: '설정',
+}
 
 const ANALYTICS_NAV: AppShellNavItem[] = [
   { id: 'home', label: '홈', icon: HomeIcon },
@@ -86,7 +94,6 @@ const ANALYTICS_NAV: AppShellNavItem[] = [
   { id: 'monetization', label: '수익화', icon: Coins },
   { id: 'events', label: '이벤트 카탈로그', icon: Database },
   { id: 'users', label: '유저 관리', icon: Users },
-  { id: 'settings', label: '설정', icon: SettingsIcon },
 ]
 
 const DESIGN_SYSTEM_NAV: AppShellNavItem[] = [
@@ -127,17 +134,17 @@ export function Section({
 }
 
 function AnalyticsDashboard({
-  adminEmail,
-  onSignOut,
-  topNav,
+  brand,
+  data,
+  range,
+  setRange,
 }: {
-  adminEmail: string
-  onSignOut: () => void
-  topNav: React.ReactNode
+  brand: React.ReactNode
+  data: DashboardData | null
+  range: DateRange
+  setRange: (range: DateRange) => void
 }) {
   const { theme, toggle } = useTheme()
-  const [range, setRange] = useState<DateRange>('28d')
-  const [data, setData] = useState<DashboardData | null>(null)
   const [activeId, setActiveId] = useState('home')
 
   // 같은 데이터를 다른 모양으로도 보여줄 수 있는 차트 카드 4개의 "지금
@@ -147,21 +154,6 @@ function AnalyticsDashboard({
   const [byEntryView, setByEntryView] = useState<'bar-h' | 'bar-v'>('bar-h')
   const [funnelView, setFunnelView] = useState<'funnel' | 'bar'>('funnel')
   const [spinDepthView, setSpinDepthView] = useState<'bar' | 'donut'>('bar')
-
-  useEffect(() => {
-    let cancelled = false
-    posthogSource.getDashboard(range).then(
-      (d) => {
-        if (!cancelled) setData(d)
-      },
-      (err) => {
-        if (!cancelled) console.error('대시보드 데이터 로드 실패:', err)
-      },
-    )
-    return () => {
-      cancelled = true
-    }
-  }, [range])
 
   const handleNavigate = (id: string) => {
     setActiveId(id)
@@ -193,21 +185,7 @@ function AnalyticsDashboard({
 
   return (
     <TooltipProvider>
-      <AppShell
-        brand={
-          <span className="flex items-center gap-2">
-            <span className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md text-12 font-bold">
-              모
-            </span>
-            모먹지 어드민
-          </span>
-        }
-        topNav={topNav}
-        nav={ANALYTICS_NAV}
-        activeId={activeId}
-        onNavigate={handleNavigate}
-        actions={themeToggle}
-      >
+      <AppShell brand={brand} nav={ANALYTICS_NAV} activeId={activeId} onNavigate={handleNavigate} actions={themeToggle}>
         <PageHeader
           title="사용자 대시보드"
           description={data ? `기준 시각 ${data.updatedAt} · 목업 데이터 — PostHog 계측 후 라이브로 전환됩니다.` : undefined}
@@ -680,13 +658,6 @@ function AnalyticsDashboard({
                   <UsersSection />
                 </Section>
               )}
-
-              {/* 설정 */}
-              {activeId === 'settings' && (
-                <Section id="settings" title="설정" description="디자인 시스템 버전, 관리자 계정, KPI 알림 규칙.">
-                  <SettingsSection overview={data.overview} adminEmail={adminEmail} onSignOut={onSignOut} />
-                </Section>
-              )}
             </>
           )}
         </div>
@@ -702,7 +673,7 @@ function AnalyticsDashboard({
  * 그래서 로딩 스켈레톤도, 기간 스위치도 없다. activeId/스크롤 내비만
  * AnalyticsDashboard와 같은 패턴을 그대로 따른다.
  */
-function DesignSystemDashboard({ topNav }: { topNav: React.ReactNode }) {
+function DesignSystemDashboard({ brand }: { brand: React.ReactNode }) {
   const { theme, toggle } = useTheme()
   const [activeId, setActiveId] = useState('ds-overview')
 
@@ -724,24 +695,61 @@ function DesignSystemDashboard({ topNav }: { topNav: React.ReactNode }) {
 
   return (
     <TooltipProvider>
-      <AppShell
-        brand={
-          <span className="flex items-center gap-2">
-            <span className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md text-12 font-bold">
-              모
-            </span>
-            모먹지 어드민
-          </span>
-        }
-        topNav={topNav}
-        nav={DESIGN_SYSTEM_NAV}
-        activeId={activeId}
-        onNavigate={handleNavigate}
-        actions={themeToggle}
-      >
+      <AppShell brand={brand} nav={DESIGN_SYSTEM_NAV} activeId={activeId} onNavigate={handleNavigate} actions={themeToggle}>
         <PageHeader title="디자인 시스템" description="모먹지 앱에 적용된 파운데이션·시맨틱 토큰과 공통 컴포넌트를 조회합니다." />
         <div className="flex flex-col gap-10 px-6 py-8">
           <DesignSystemSection />
+        </div>
+      </AppShell>
+    </TooltipProvider>
+  )
+}
+
+/*
+ * 설정 — 애널리틱스/디자인시스템 어느 쪽에도 속하지 않는 항상 켜져 있는
+ * 도구라 별도 모드로 뺐다(로고 드롭다운 옆 버튼으로 진입). 하위 nav가
+ * 없는 단일 화면이라 AppShell에 빈 nav 배열을 준다. KPI 알림 규칙 카드가
+ * overview를 필요로 해서 AdminRoot가 들고 있는 data를 그대로 받는다 —
+ * 이 모드로 바로 들어와도(애널리틱스를 거치지 않아도) fetch는 이미
+ * AdminRoot에서 시작돼 있다.
+ */
+function SettingsDashboard({
+  brand,
+  data,
+  adminEmail,
+  onSignOut,
+}: {
+  brand: React.ReactNode
+  data: DashboardData | null
+  adminEmail: string
+  onSignOut: () => void
+}) {
+  const { theme, toggle } = useTheme()
+
+  const themeToggle = (
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={toggle}
+      aria-label={theme === 'dark' ? '라이트 테마로 전환' : '다크 테마로 전환'}
+    >
+      {theme === 'dark' ? <Sun aria-hidden className="size-4" /> : <Moon aria-hidden className="size-4" />}
+    </Button>
+  )
+
+  return (
+    <TooltipProvider>
+      <AppShell brand={brand} nav={[]} actions={themeToggle}>
+        <PageHeader title="설정" description="디자인 시스템 버전, 관리자 계정, KPI 알림 규칙." />
+        <div className="flex flex-col gap-10 px-6 py-8">
+          {!data ? (
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <Skeleton shape="block" className="h-40" />
+              <Skeleton shape="block" className="h-40" />
+            </div>
+          ) : (
+            <SettingsSection overview={data.overview} adminEmail={adminEmail} onSignOut={onSignOut} />
+          )}
         </div>
       </AppShell>
     </TooltipProvider>
@@ -777,25 +785,77 @@ export function App() {
  * "state + 앵커 스크롤" 방식을 그대로 한 단계 위로 확장했다 — 관리자
  * 1인 전용 내부 도구라 URL 공유 가치가 낮고, 지금 있는 어떤 패턴과도
  * 다른 라우팅 라이브러리를 새로 들이는 비용이 더 크다고 판단했다(YAGNI).
+ *
+ * 대시보드 데이터(range/data)는 여기서 한 번만 fetch한다 — 설정 모드도
+ * KPI 알림 규칙에 overview가 필요해서, 모드를 오갈 때마다 다시 부르지
+ * 않도록 이 레벨로 끌어올렸다(예전엔 AnalyticsDashboard가 각자 들고
+ * 있어서 모드를 오가면 매번 새로 fetch됐다).
  */
 function AdminRoot({ adminEmail, onSignOut }: { adminEmail: string; onSignOut: () => void }) {
   const [mode, setMode] = useState<AdminMode>('analytics')
+  const [range, setRange] = useState<DateRange>('28d')
+  const [data, setData] = useState<DashboardData | null>(null)
 
-  const modeSwitch = (
-    <Tabs value={mode} onValueChange={(v) => setMode(v as AdminMode)}>
-      <TabsList variant="enclosed" className="w-full">
-        <TabsTrigger value="analytics" variant="enclosed" className="flex-1">
-          애널리틱스
-        </TabsTrigger>
-        <TabsTrigger value="design-system" variant="enclosed" className="flex-1">
-          디자인시스템
-        </TabsTrigger>
-      </TabsList>
-    </Tabs>
+  useEffect(() => {
+    let cancelled = false
+    posthogSource.getDashboard(range).then(
+      (d) => {
+        if (!cancelled) setData(d)
+      },
+      (err) => {
+        if (!cancelled) console.error('대시보드 데이터 로드 실패:', err)
+      },
+    )
+    return () => {
+      cancelled = true
+    }
+  }, [range])
+
+  // 로고 자리 드롭다운 — 애널리틱스/디자인시스템 두 "큰 화면"을 전환한다.
+  // 설정은 이 드롭다운에 넣지 않고 바로 옆 아이콘 버튼으로 뺐다 — 어느
+  // 모드에 있든 항상 한 클릭으로 갈 수 있어야 하는 도구라, 드롭다운을
+  // 열어야만 닿는 항목으로 두면 오히려 접근성이 떨어진다.
+  const brand = (
+    <div className="flex items-center gap-1">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            className="hover:bg-accent flex items-center gap-2 rounded-md py-1.5 pr-1.5 pl-1 text-left transition-colors focus-visible:border-ring focus-visible:ring-ring/50 outline-none focus-visible:ring-2"
+          >
+            <span className="bg-primary text-primary-foreground flex size-6 shrink-0 items-center justify-center rounded-md text-12 font-bold">
+              모
+            </span>
+            <span className="flex flex-col leading-tight">
+              <span className="text-14 font-semibold">모먹지 어드민</span>
+              <span className="text-muted-foreground text-11">{MODE_LABEL[mode]}</span>
+            </span>
+            <ChevronsUpDown className="text-muted-foreground size-3.5 shrink-0" aria-hidden />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start">
+          <DropdownMenuItem onSelect={() => setMode('analytics')}>애널리틱스</DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => setMode('design-system')}>디자인시스템</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => setMode('settings')}
+        aria-label="설정"
+        aria-current={mode === 'settings' ? 'page' : undefined}
+        className={mode === 'settings' ? 'bg-accent text-accent-foreground' : undefined}
+      >
+        <SettingsIcon className="size-4" aria-hidden />
+      </Button>
+    </div>
   )
 
   if (mode === 'design-system') {
-    return <DesignSystemDashboard topNav={modeSwitch} />
+    return <DesignSystemDashboard brand={brand} />
   }
-  return <AnalyticsDashboard adminEmail={adminEmail} onSignOut={onSignOut} topNav={modeSwitch} />
+  if (mode === 'settings') {
+    return <SettingsDashboard brand={brand} data={data} adminEmail={adminEmail} onSignOut={onSignOut} />
+  }
+  return <AnalyticsDashboard brand={brand} data={data} range={range} setRange={setRange} />
 }
