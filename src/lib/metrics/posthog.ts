@@ -1,5 +1,5 @@
 import type { MetricsSource } from './source'
-import { supabase } from '../supabase'
+import { runPostHogQuery } from './posthog-client'
 import type { DashboardData, DateRange, EntryPath, SeriesPoint } from './types'
 
 /*
@@ -32,25 +32,8 @@ interface RawEvent {
   spinIndex?: number
 }
 
-async function runQuery(query: string): Promise<unknown[][]> {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
-  const res = await fetch('/api/posthog-query', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
-    },
-    body: JSON.stringify({ query }),
-  })
-  if (!res.ok) throw new Error(`PostHog 쿼리 실패: HTTP ${res.status}`)
-  const json = (await res.json()) as { results?: unknown[][] }
-  return json.results ?? []
-}
-
 async function fetchRawEvents(lookbackDays: number): Promise<RawEvent[]> {
-  const rows = await runQuery(`
+  const rows = await runPostHogQuery(`
     SELECT person_id, event, timestamp, properties.entry, properties.channel, properties.spin_index
     FROM events
     WHERE timestamp >= now() - INTERVAL ${lookbackDays} DAY
