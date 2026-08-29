@@ -30,40 +30,49 @@ import {
  * "이미 있는 데이터를 이미 있는 컴포넌트로 배치"만 한다. 데이터 자체는
  * momeokji-tokens.ts를, 프리뷰 그리는 방식은 component-preview-frame.tsx를
  * 고친다.
+ *
+ * [페이지 분리] 애널리틱스와 똑같이 activeId와 일치하는 탭 하나만
+ * 렌더링한다 — 예전엔(1페이지 앵커 내비 시절) 5개를 전부 한 번에
+ * 그려두고 nav 클릭 시 scrollIntoView만 했는데, 그러면 '컴포넌트' 탭의
+ * iframe(minHeight 1400)이 다른 탭을 보는 동안에도 항상 마운트돼 있었다.
+ * 지금은 실제로 그 탭에 있을 때만 그린다.
  */
-export function DesignSystemSection() {
+export function DesignSystemSection({ activeId }: { activeId: string }) {
   return (
     <>
-      <Section
-        id="ds-overview"
-        title="개요"
-        description="이 화면은 모먹지 앱(w0920ys/food-rollet)의 index.html에 실제로 존재하는 토큰·컴포넌트를 손으로 옮겨 온 스냅샷입니다."
-      >
-        <Card>
-          <CardContent>
-            <DescriptionList layout="horizontal">
-              <DescriptionItem>
-                <DescriptionTerm>대상 서비스</DescriptionTerm>
-                <DescriptionDetail>모먹지 ({MOMEOKJI_SNAPSHOT.sourceRepo})</DescriptionDetail>
-              </DescriptionItem>
-              <DescriptionItem>
-                <DescriptionTerm>기준 버전</DescriptionTerm>
-                <DescriptionDetail>v{MOMEOKJI_SNAPSHOT.appVersion}</DescriptionDetail>
-              </DescriptionItem>
-              <DescriptionItem>
-                <DescriptionTerm>기반 디자인 언어</DescriptionTerm>
-                <DescriptionDetail>{MOMEOKJI_SNAPSHOT.designLanguage}</DescriptionDetail>
-              </DescriptionItem>
-              <DescriptionItem>
-                <DescriptionTerm>스냅샷 기준일</DescriptionTerm>
-                <DescriptionDetail>{MOMEOKJI_SNAPSHOT.asOf}</DescriptionDetail>
-              </DescriptionItem>
-            </DescriptionList>
-          </CardContent>
-        </Card>
-      </Section>
+      {activeId === 'ds-overview' && (
+        <Section
+          id="ds-overview"
+          title="개요"
+          description="이 화면은 모먹지 앱(w0920ys/food-rollet)의 index.html에 실제로 존재하는 토큰·컴포넌트를 손으로 옮겨 온 스냅샷입니다."
+        >
+          <Card>
+            <CardContent>
+              <DescriptionList layout="horizontal">
+                <DescriptionItem>
+                  <DescriptionTerm>대상 서비스</DescriptionTerm>
+                  <DescriptionDetail>모먹지 ({MOMEOKJI_SNAPSHOT.sourceRepo})</DescriptionDetail>
+                </DescriptionItem>
+                <DescriptionItem>
+                  <DescriptionTerm>기준 버전</DescriptionTerm>
+                  <DescriptionDetail>v{MOMEOKJI_SNAPSHOT.appVersion}</DescriptionDetail>
+                </DescriptionItem>
+                <DescriptionItem>
+                  <DescriptionTerm>기반 디자인 언어</DescriptionTerm>
+                  <DescriptionDetail>{MOMEOKJI_SNAPSHOT.designLanguage}</DescriptionDetail>
+                </DescriptionItem>
+                <DescriptionItem>
+                  <DescriptionTerm>스냅샷 기준일</DescriptionTerm>
+                  <DescriptionDetail>{MOMEOKJI_SNAPSHOT.asOf}</DescriptionDetail>
+                </DescriptionItem>
+              </DescriptionList>
+            </CardContent>
+          </Card>
+        </Section>
+      )}
 
-      <Section id="ds-foundation" title="파운데이션 토큰" description="색·타이포·간격·라운드 — 다른 모든 토큰이 참조하는 가장 아래 레이어.">
+      {activeId === 'ds-foundation' && (
+        <Section id="ds-foundation" title="파운데이션 토큰" description="색·타이포·간격·라운드 — 다른 모든 토큰이 참조하는 가장 아래 레이어.">
         <div className="flex flex-col gap-4">
           {FOUNDATION_COLORS.map((group) => (
             <Card key={group.title}>
@@ -151,13 +160,15 @@ export function DesignSystemSection() {
             </div>
           </Alert>
         </div>
-      </Section>
+        </Section>
+      )}
 
-      <Section
-        id="ds-semantic"
-        title="시맨틱 토큰"
-        description="역할 기반 토큰 17개. 컴포넌트는 파운데이션 값을 직접 참조하지 않고 이 역할 이름만 참조합니다 — 참조하는 primitive만 바꾸면 그 역할을 쓰는 모든 곳이 한 번에 바뀝니다."
-      >
+      {activeId === 'ds-semantic' && (
+        <Section
+          id="ds-semantic"
+          title="시맨틱 토큰"
+          description="역할 기반 토큰 17개. 컴포넌트는 파운데이션 값을 직접 참조하지 않고 이 역할 이름만 참조합니다 — 참조하는 primitive만 바꾸면 그 역할을 쓰는 모든 곳이 한 번에 바뀝니다."
+        >
         <Card padding="none">
           <CardContent>
             <Table label="시맨틱 토큰과 참조하는 파운데이션 값">
@@ -190,17 +201,21 @@ export function DesignSystemSection() {
             </Table>
           </CardContent>
         </Card>
-      </Section>
+        </Section>
+      )}
 
-      <Section id="ds-components" title="공통 컴포넌트" description="모먹지 앱의 실제 CSS로 그린 라이브 프리뷰입니다(iframe으로 격리해서 이 대시보드 스타일과 섞이지 않습니다).">
-        <ComponentPreviewFrame html={buildComponentPreviewHtml()} title="모먹지 컴포넌트 라이브 프리뷰" minHeight={1400} />
-      </Section>
+      {activeId === 'ds-components' && (
+        <Section id="ds-components" title="공통 컴포넌트" description="모먹지 앱의 실제 CSS로 그린 라이브 프리뷰입니다(iframe으로 격리해서 이 대시보드 스타일과 섞이지 않습니다).">
+          <ComponentPreviewFrame html={buildComponentPreviewHtml()} title="모먹지 컴포넌트 라이브 프리뷰" minHeight={1400} />
+        </Section>
+      )}
 
-      <Section
-        id="ds-usage"
-        title="디자인 시스템 활용 현황"
-        description="시맨틱 토큰이 실제 index.html에서 var(--token)으로 몇 번 참조되는지 grep으로 직접 센 값입니다."
-      >
+      {activeId === 'ds-usage' && (
+        <Section
+          id="ds-usage"
+          title="디자인 시스템 활용 현황"
+          description="시맨틱 토큰이 실제 index.html에서 var(--token)으로 몇 번 참조되는지 grep으로 직접 센 값입니다."
+        >
         <div className="flex flex-col gap-4">
           <Card>
             <CardContent className="flex flex-col gap-3">
@@ -254,7 +269,8 @@ export function DesignSystemSection() {
             </Alert>
           ))}
         </div>
-      </Section>
+        </Section>
+      )}
     </>
   )
 }

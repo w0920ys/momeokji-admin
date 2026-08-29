@@ -698,7 +698,7 @@ function DesignSystemDashboard({ brand }: { brand: React.ReactNode }) {
       <AppShell brand={brand} nav={DESIGN_SYSTEM_NAV} activeId={activeId} onNavigate={handleNavigate} actions={themeToggle}>
         <PageHeader title="디자인 시스템" description="모먹지 앱에 적용된 파운데이션·시맨틱 토큰과 공통 컴포넌트를 조회합니다." />
         <div className="flex flex-col gap-10 px-6 py-8">
-          <DesignSystemSection />
+          <DesignSystemSection activeId={activeId} />
         </div>
       </AppShell>
     </TooltipProvider>
