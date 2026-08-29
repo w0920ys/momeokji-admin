@@ -76,7 +76,7 @@ function DescriptionTerm({ className, ...props }: React.ComponentProps<'dt'>) {
     <dt
       data-slot="description-term"
       className={cn(
-        'text-muted-foreground text-sm',
+        'text-muted-foreground text-16',
         layout === 'horizontal' && 'w-32 shrink-0',
         className,
       )}
@@ -95,7 +95,7 @@ function DescriptionDetail({ className, ...props }: React.ComponentProps<'dd'>) 
   return (
     <dd
       data-slot="description-detail"
-      className={cn('text-sm', layout === 'horizontal' && 'min-w-0 flex-1', className)}
+      className={cn('text-16', layout === 'horizontal' && 'min-w-0 flex-1', className)}
       {...props}
     />
   )

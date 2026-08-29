@@ -38,7 +38,7 @@ export function StatCard({
     <Card>
       <CardContent className="flex flex-col gap-2">
         <div className="flex items-center gap-1.5">
-          <span className="text-muted-foreground text-xs font-medium">{label}</span>
+          <span className="text-muted-foreground text-12 font-medium">{label}</span>
           {hint && (
             <Tooltip>
               <TooltipTrigger asChild>
@@ -56,7 +56,7 @@ export function StatCard({
           <MetricInfoButton definition={definition} />
         </div>
         <div className="flex items-end justify-between gap-2">
-          <span className="text-2xl font-semibold tracking-tight tabular-nums">{value}</span>
+          <span className="text-24 font-semibold tracking-tight tabular-nums">{value}</span>
           {deltaPct != null && (
             <span className="mb-0.5">
               <TrendBadge deltaPct={deltaPct} higherIsBetter={higherIsBetter} />

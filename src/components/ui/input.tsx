@@ -23,7 +23,7 @@ import { cn } from '@/lib/utils'
  * 각자 size 파라미터에 자체 기본값 'default'를 둔다.
  */
 const controlShellVariants = cva(
-  'flex w-full min-w-0 rounded-md border border-input bg-background px-3 text-sm shadow-xs transition outline-none hover:border-ring/60 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 dark:bg-input/30',
+  'flex w-full min-w-0 rounded-md border border-input bg-background px-3 text-16 shadow-xs transition outline-none hover:border-ring/60 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 dark:bg-input/30',
   {
     variants: {
       size: {

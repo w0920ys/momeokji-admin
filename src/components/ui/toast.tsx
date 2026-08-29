@@ -36,7 +36,7 @@ function ToastViewport({
  * — Toast의 구조에는 icon이 없다. 테두리와 배경 색조만으로 구분한다.
  */
 const toastVariants = cva(
-  'bg-popover text-popover-foreground pointer-events-auto relative flex w-full items-start gap-3 rounded-md border p-4 text-sm shadow-md',
+  'bg-popover text-popover-foreground pointer-events-auto relative flex w-full items-start gap-3 rounded-md border p-4 text-16 shadow-md',
   {
     variants: {
       variant: {
@@ -68,7 +68,7 @@ function ToastTitle({ className, ...props }: React.ComponentProps<typeof ToastPr
   return (
     <ToastPrimitive.Title
       data-slot="toast-title"
-      className={cn('flex-1 text-sm', className)}
+      className={cn('flex-1 text-16', className)}
       {...props}
     />
   )
@@ -79,7 +79,7 @@ function ToastAction({ className, ...props }: React.ComponentProps<typeof ToastP
     <ToastPrimitive.Action
       data-slot="toast-action"
       className={cn(
-        'shrink-0 rounded-xs text-sm font-medium underline underline-offset-4 outline-none',
+        'shrink-0 rounded-xs text-16 font-medium underline underline-offset-4 outline-none',
         'focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-2',
         className,
       )}

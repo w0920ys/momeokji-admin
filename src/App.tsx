@@ -111,8 +111,8 @@ export function Section({
   return (
     <section id={id} className="scroll-mt-4 flex flex-col gap-4">
       <div className="flex flex-col gap-1">
-        <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
-        {description && <p className="text-muted-foreground text-sm">{description}</p>}
+        <h2 className="text-18 font-semibold tracking-tight">{title}</h2>
+        {description && <p className="text-muted-foreground text-14">{description}</p>}
       </div>
       {children}
     </section>
@@ -176,7 +176,7 @@ function AnalyticsDashboard({
       <AppShell
         brand={
           <span className="flex items-center gap-2">
-            <span className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md text-xs font-bold">
+            <span className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md text-12 font-bold">
               모
             </span>
             모먹지 어드민
@@ -223,7 +223,7 @@ function AnalyticsDashboard({
                   <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
                     <Card className="lg:col-span-2">
                       <CardHeader>
-                        <CardTitle className="flex items-center gap-1.5 text-sm">
+                        <CardTitle className="flex items-center gap-1.5 text-14">
                           채널별 신규 유입 추세
                           <MetricInfoButton definition={METRIC_DEFINITIONS.newUsersTrend} />
                         </CardTitle>
@@ -242,7 +242,7 @@ function AnalyticsDashboard({
                     </Card>
                     <Card>
                       <CardHeader>
-                        <CardTitle className="flex items-center gap-1.5 text-sm">
+                        <CardTitle className="flex items-center gap-1.5 text-14">
                           유입 경로 구성
                           <MetricInfoButton definition={METRIC_DEFINITIONS.entryShares} />
                         </CardTitle>
@@ -259,7 +259,7 @@ function AnalyticsDashboard({
 
                   <Card padding="none">
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-1.5 text-sm">
+                      <CardTitle className="flex items-center gap-1.5 text-14">
                         유입 소스 (UTM)
                         <MetricInfoButton definition={METRIC_DEFINITIONS.sources} />
                       </CardTitle>
@@ -299,7 +299,7 @@ function AnalyticsDashboard({
                   <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
                     <Card className="lg:col-span-2">
                       <CardHeader>
-                        <CardTitle className="flex items-center gap-1.5 text-sm">
+                        <CardTitle className="flex items-center gap-1.5 text-14">
                           주간 리텐션 곡선
                           <MetricInfoButton definition={METRIC_DEFINITIONS.retentionCurve} />
                         </CardTitle>
@@ -336,7 +336,7 @@ function AnalyticsDashboard({
 
                   <Card>
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-1.5 text-sm">
+                      <CardTitle className="flex items-center gap-1.5 text-14">
                         유입 경로별 D7 리텐션
                         <MetricInfoButton definition={METRIC_DEFINITIONS.byEntryRetention} />
                       </CardTitle>
@@ -358,7 +358,7 @@ function AnalyticsDashboard({
                   <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                     <Card>
                       <CardHeader>
-                        <CardTitle className="flex items-center gap-1.5 text-sm">
+                        <CardTitle className="flex items-center gap-1.5 text-14">
                           세션 → 스핀 → 확정 퍼널
                           <MetricInfoButton definition={METRIC_DEFINITIONS.funnel} />
                         </CardTitle>
@@ -372,7 +372,7 @@ function AnalyticsDashboard({
                     </Card>
                     <Card>
                       <CardHeader>
-                        <CardTitle className="flex items-center gap-1.5 text-sm">
+                        <CardTitle className="flex items-center gap-1.5 text-14">
                           스핀 깊이 분포
                           <MetricInfoButton definition={METRIC_DEFINITIONS.spinDepth} />
                         </CardTitle>
@@ -435,7 +435,7 @@ function AnalyticsDashboard({
                 <Section id="features" title="기능 채택 매트릭스" description="부가 기능 하나하나가 얼마나 쓰이고, 리텐션에 얼마나 기여하는가.">
                   <Card padding="none">
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-1.5 text-sm">
+                      <CardTitle className="flex items-center gap-1.5 text-14">
                         기능별 채택률과 리텐션 리프트
                         <MetricInfoButton definition={METRIC_DEFINITIONS.featureAdoption} />
                       </CardTitle>
@@ -456,7 +456,7 @@ function AnalyticsDashboard({
                               <TableCell>
                                 <div className="flex items-center gap-2">
                                   <Progress value={f.adoptionRate} size="sm" className="w-28" />
-                                  <span className="text-muted-foreground w-10 shrink-0 text-xs tabular-nums">
+                                  <span className="text-muted-foreground w-10 shrink-0 text-12 tabular-nums">
                                     {formatPercent(f.adoptionRate, 0)}
                                   </span>
                                 </div>
@@ -479,7 +479,7 @@ function AnalyticsDashboard({
                   <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
                     <Card className="lg:col-span-2">
                       <CardHeader>
-                        <CardTitle className="flex items-center gap-1.5 text-sm">
+                        <CardTitle className="flex items-center gap-1.5 text-14">
                           룸 생성 → 입장 추세
                           <MetricInfoButton definition={METRIC_DEFINITIONS.viralityTrend} />
                         </CardTitle>
@@ -522,7 +522,7 @@ function AnalyticsDashboard({
                 <Section id="channels" title="채널 비교" description="PWA vs 앱인토스 — 두 배포 경로의 성과 차이.">
                   <Card padding="none">
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-1.5 text-sm">
+                      <CardTitle className="flex items-center gap-1.5 text-14">
                         채널별 핵심 지표 비교
                         <MetricInfoButton definition={METRIC_DEFINITIONS.channelsCompare} />
                       </CardTitle>
@@ -616,7 +616,7 @@ function DesignSystemDashboard({ topNav }: { topNav: React.ReactNode }) {
       <AppShell
         brand={
           <span className="flex items-center gap-2">
-            <span className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md text-xs font-bold">
+            <span className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md text-12 font-bold">
               모
             </span>
             모먹지 어드민

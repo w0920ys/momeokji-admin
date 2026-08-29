@@ -34,7 +34,7 @@ export function ChartFunnel({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="text-sm">
+      <div className="text-14">
         <span className="text-muted-foreground">전체 전환율 </span>
         <span className="text-foreground font-semibold tabular-nums">{formatPercent(overallPct, 1)}</span>
         <span className="text-muted-foreground">
@@ -52,7 +52,7 @@ export function ChartFunnel({
             <RechartsPrimitive.LabelList
               position="right"
               dataKey="step"
-              className="fill-foreground text-xs font-medium"
+              className="fill-foreground text-12 font-medium"
             />
             {/*
              * dataKey 기반 formatter는 값만 받고 인덱스를 안 줘서 "직전 단계
@@ -90,7 +90,7 @@ export function ChartFunnel({
                     y={y + h / 2}
                     textAnchor="middle"
                     dominantBaseline="middle"
-                    className="fill-background text-xs font-semibold"
+                    className="fill-background text-12 font-semibold"
                   >
                     {label}
                   </text>

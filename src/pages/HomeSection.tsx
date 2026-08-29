@@ -17,7 +17,7 @@ export function HomeSection({ data, onJump }: { data: DashboardData; onJump: (id
     <div className="flex flex-col gap-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">북극성 추이 — 주간 반복 결정자(WRD)</CardTitle>
+          <CardTitle className="text-14">북극성 추이 — 주간 반복 결정자(WRD)</CardTitle>
           <CardDescription>한 주 2일 이상 룰렛 결정을 확정한 사용자 수</CardDescription>
         </CardHeader>
         <CardContent>
@@ -99,7 +99,7 @@ function PreviewCard({
     >
       <Card className="hover:border-ring/50 transition-colors">
         <CardHeader>
-          <CardTitle className="text-sm">{title}</CardTitle>
+          <CardTitle className="text-14">{title}</CardTitle>
           <CardDescription>자세히 보려면 클릭</CardDescription>
         </CardHeader>
         <CardContent>{children}</CardContent>

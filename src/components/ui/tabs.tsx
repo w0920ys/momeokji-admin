@@ -56,14 +56,20 @@ function TabsTrigger({
     <TabsPrimitive.Trigger
       data-slot="tabs-trigger"
       className={cn(
-        'group text-muted-foreground relative inline-flex items-center justify-center gap-1.5 rounded-sm text-sm font-medium whitespace-nowrap outline-none transition',
+        /*
+         * 높이는 밀도 축(h-control-sm)에서 가져온다. 예전에는 py-1.5와 본문
+         * 줄 간격(12+20)이 우연히 32px를 만들었는데, 그러면 본문 줄 간격을
+         * 손댈 때마다 탭 높이가 따라 움직인다 — 실제로 줄 간격을 24px로
+         * 올리자 36px가 됐다. 탭은 컨트롤이므로 다른 컨트롤과 같은 축에 둔다.
+         */
+        'group text-muted-foreground relative inline-flex h-control-sm items-center justify-center gap-1.5 rounded-sm text-16 font-medium whitespace-nowrap outline-none transition',
         'hover:text-foreground',
         'data-[state=active]:text-foreground',
         'focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-2',
         'disabled:pointer-events-none disabled:opacity-50',
-        variant === 'line' && 'px-1 py-1.5',
+        variant === 'line' && 'px-1',
         variant === 'enclosed' &&
-          'px-3 py-1.5 data-[state=active]:bg-background data-[state=active]:shadow-xs',
+          'px-3 data-[state=active]:bg-background data-[state=active]:shadow-xs',
         className,
       )}
       {...props}
@@ -89,7 +95,7 @@ function TabsContent({ className, ...props }: React.ComponentProps<typeof TabsPr
     <TabsPrimitive.Content
       data-slot="tabs-content"
       className={cn(
-        'pt-3 text-sm outline-none',
+        'pt-3 text-16 outline-none',
         'focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-2 focus-visible:rounded-sm',
         className,
       )}

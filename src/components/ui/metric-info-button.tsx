@@ -44,13 +44,13 @@ export function MetricInfoButton({ definition }: { definition?: MetricDefinition
 
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-2">
-            <span className="text-muted-foreground text-xs font-semibold">PostHog 이벤트</span>
+            <span className="text-muted-foreground text-12 font-semibold">PostHog 이벤트</span>
             {definition.events.map((ev) => (
               <div key={ev.name} className="rounded-md border p-3">
                 <div className="flex flex-wrap items-center gap-2">
-                  <code className="bg-muted rounded px-1.5 py-0.5 text-xs font-semibold">{ev.name}</code>
+                  <code className="bg-muted rounded px-1.5 py-0.5 text-12 font-semibold">{ev.name}</code>
                 </div>
-                <p className="text-muted-foreground mt-1.5 text-xs leading-relaxed">{ev.trigger}</p>
+                <p className="text-muted-foreground mt-1.5 text-12 leading-relaxed">{ev.trigger}</p>
                 {ev.properties && ev.properties.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-1">
                     {ev.properties.map((p) => (
@@ -66,7 +66,7 @@ export function MetricInfoButton({ definition }: { definition?: MetricDefinition
 
           {definition.personProperties && definition.personProperties.length > 0 && (
             <div className="flex flex-col gap-2">
-              <span className="text-muted-foreground text-xs font-semibold">Person property ($set)</span>
+              <span className="text-muted-foreground text-12 font-semibold">Person property ($set)</span>
               <div className="flex flex-wrap gap-1">
                 {definition.personProperties.map((p) => (
                   <Badge key={p} variant="info">
@@ -78,7 +78,7 @@ export function MetricInfoButton({ definition }: { definition?: MetricDefinition
           )}
 
           {definition.notes && (
-            <p className="border-t pt-3 text-xs leading-relaxed">{definition.notes}</p>
+            <p className="border-t pt-3 text-12 leading-relaxed">{definition.notes}</p>
           )}
         </div>
       </DialogContent>

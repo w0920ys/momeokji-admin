@@ -56,7 +56,7 @@ export function SetNewPasswordPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="new-password" className="text-sm font-medium">
+              <label htmlFor="new-password" className="text-14 font-medium">
                 새 비밀번호
               </label>
               <PasswordInput
@@ -69,7 +69,7 @@ export function SetNewPasswordPage() {
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="confirm-password" className="text-sm font-medium">
+              <label htmlFor="confirm-password" className="text-14 font-medium">
                 새 비밀번호 확인
               </label>
               <PasswordInput

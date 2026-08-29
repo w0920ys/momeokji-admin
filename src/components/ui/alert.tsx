@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils'
  * 있었다.
  */
 const alertVariants = cva(
-  'relative flex w-full items-start gap-3 rounded-md border p-4 text-sm [&>svg]:mt-0.5 [&>svg]:size-4 [&>svg]:shrink-0',
+  'relative flex w-full items-start gap-3 rounded-md border p-4 text-16 [&>svg]:mt-0.5 [&>svg]:size-4 [&>svg]:shrink-0',
   {
     variants: {
       variant: {

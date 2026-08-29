@@ -41,7 +41,7 @@ function DropdownMenuItem({
       data-slot="dropdown-menu-item"
       data-destructive={destructive ? '' : undefined}
       className={cn(
-        'relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none select-none',
+        'relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-16 outline-none select-none',
         'focus:bg-accent focus:text-accent-foreground',
         'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
         'data-[destructive]:text-destructive data-[destructive]:focus:bg-destructive/10 data-[destructive]:focus:text-destructive',
@@ -73,7 +73,7 @@ function DropdownMenuLabel({
   return (
     <DropdownMenuPrimitive.Label
       data-slot="dropdown-menu-label"
-      className={cn('text-muted-foreground px-2 py-1.5 text-2xs font-bold tracking-widest', className)}
+      className={cn('text-muted-foreground px-2 py-1.5 text-11 font-bold tracking-widest', className)}
       {...props}
     />
   )

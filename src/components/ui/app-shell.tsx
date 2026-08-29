@@ -93,12 +93,12 @@ function NavButton({
       onClick={onClick}
       aria-current={active ? 'page' : undefined}
       className={cn(
-        'flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors',
+        'flex items-center gap-2 rounded-md px-3 py-2 text-14 font-medium whitespace-nowrap transition-colors',
         active
           ? 'bg-accent text-accent-foreground'
           : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
         'focus-visible:border-ring focus-visible:ring-ring/50 outline-none focus-visible:ring-2',
-        compact && 'px-2.5 py-1.5 text-xs',
+        compact && 'px-2.5 py-1.5 text-12',
       )}
     >
       {Icon && <Icon className="size-4 shrink-0" />}

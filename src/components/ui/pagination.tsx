@@ -37,7 +37,7 @@ function PaginationInfo({ className, ...props }: React.ComponentProps<'p'>) {
   return (
     <p
       data-slot="pagination-info"
-      className={cn('text-muted-foreground text-sm', className)}
+      className={cn('text-muted-foreground text-16', className)}
       {...props}
     />
   )

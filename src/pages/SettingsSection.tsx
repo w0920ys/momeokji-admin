@@ -58,7 +58,7 @@ function DesignSystemCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-sm">디자인 시스템</CardTitle>
+        <CardTitle className="text-14">디자인 시스템</CardTitle>
         <CardDescription>이 대시보드에 적용된 adminds 버전 정보</CardDescription>
       </CardHeader>
       <CardContent>
@@ -77,7 +77,7 @@ function DesignSystemCard() {
               <div className="flex flex-wrap gap-1.5">
                 <Badge variant="info">{DESIGN_SYSTEM.localExtensions}개 — 업스트림 미반영</Badge>
               </div>
-              <p className="text-muted-foreground mt-1.5 text-xs">
+              <p className="text-muted-foreground mt-1.5 text-12">
                 {DESIGN_SYSTEM.localExtensionNames.join(', ')}
               </p>
             </DescriptionDetail>
@@ -94,12 +94,12 @@ function AccountCard({ email, onSignOut }: { email: string; onSignOut: () => voi
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-sm">관리자 계정</CardTitle>
+        <CardTitle className="text-14">관리자 계정</CardTitle>
         <CardDescription>이 대시보드는 아래 계정만 접근할 수 있습니다.</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <div className="flex items-center justify-between gap-4">
-          <span className="text-sm font-medium">{email}</span>
+          <span className="text-14 font-medium">{email}</span>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={() => setChangingPassword((v) => !v)}>
               <KeyRound className="size-4" aria-hidden />
@@ -167,7 +167,7 @@ function ChangePasswordForm({ onDone }: { onDone: () => void }) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:flex-row sm:items-end sm:flex-wrap">
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="settings-new-password" className="text-xs font-medium">
+        <label htmlFor="settings-new-password" className="text-12 font-medium">
           새 비밀번호
         </label>
         <PasswordInput
@@ -179,7 +179,7 @@ function ChangePasswordForm({ onDone }: { onDone: () => void }) {
         />
       </div>
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="settings-confirm-password" className="text-xs font-medium">
+        <label htmlFor="settings-confirm-password" className="text-12 font-medium">
           확인
         </label>
         <PasswordInput
@@ -194,7 +194,7 @@ function ChangePasswordForm({ onDone }: { onDone: () => void }) {
       <Button type="submit" size="sm" disabled={submitting}>
         {submitting ? '저장 중…' : '저장'}
       </Button>
-      {error && <p className="text-destructive-on-tint w-full text-xs">{error}</p>}
+      {error && <p className="text-destructive-on-tint w-full text-12">{error}</p>}
     </form>
   )
 }
@@ -218,14 +218,14 @@ function AlertRulesCard({ overview }: { overview: KpiStat[] }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-sm">KPI 임계치 알림 규칙</CardTitle>
+        <CardTitle className="text-14">KPI 임계치 알림 규칙</CardTitle>
         <CardDescription>
           지금은 규칙만 저장합니다. 실제 이메일 발송은 라이브 데이터 연동 이후(Phase 0b+)
           Resend + Supabase Edge Function으로 연결됩니다.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-6">
-        {error && <p className="text-destructive-on-tint text-sm">{error}</p>}
+        {error && <p className="text-destructive-on-tint text-14">{error}</p>}
 
         <NewRuleForm overview={overview} onCreated={reload} />
 
@@ -233,7 +233,7 @@ function AlertRulesCard({ overview }: { overview: KpiStat[] }) {
           <>
             {triggered.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
-                <span className="text-muted-foreground text-xs">지금 데이터 기준 발동 중:</span>
+                <span className="text-muted-foreground text-12">지금 데이터 기준 발동 중:</span>
                 {triggered.map((t) => (
                   <Badge key={t.rule.id} variant="warning">
                     {t.rule.kpiLabel} {formatValue(t.currentValue, overview.find((s) => s.id === t.rule.kpiId)?.unit ?? 'count')}
@@ -353,7 +353,7 @@ function NewRuleForm({ overview, onCreated }: { overview: KpiStat[]; onCreated: 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:flex-row sm:items-end sm:flex-wrap">
       <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-medium">KPI</label>
+        <label className="text-12 font-medium">KPI</label>
         <Select value={kpiId} onValueChange={setKpiId}>
           <SelectTrigger className="w-48">
             <SelectValue placeholder="KPI 선택" />
@@ -368,7 +368,7 @@ function NewRuleForm({ overview, onCreated }: { overview: KpiStat[]; onCreated: 
         </Select>
       </div>
       <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-medium">조건</label>
+        <label className="text-12 font-medium">조건</label>
         <Select value={operator} onValueChange={(v) => setOperator(v as AlertOperator)}>
           <SelectTrigger className="w-24">
             <SelectValue />
@@ -380,7 +380,7 @@ function NewRuleForm({ overview, onCreated }: { overview: KpiStat[]; onCreated: 
         </Select>
       </div>
       <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-medium">임계값</label>
+        <label className="text-12 font-medium">임계값</label>
         <Input
           type="number"
           value={threshold}
@@ -390,14 +390,14 @@ function NewRuleForm({ overview, onCreated }: { overview: KpiStat[]; onCreated: 
         />
       </div>
       <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-medium">수신 이메일</label>
+        <label className="text-12 font-medium">수신 이메일</label>
         <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-56" required />
       </div>
       <Button type="submit" disabled={submitting}>
         <Plus className="size-4" aria-hidden />
         규칙 추가
       </Button>
-      {error && <p className="text-destructive-on-tint w-full text-xs">{error}</p>}
+      {error && <p className="text-destructive-on-tint w-full text-12">{error}</p>}
     </form>
   )
 }

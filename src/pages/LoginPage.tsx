@@ -94,7 +94,7 @@ function LoginView({
     <AuthCard icon={<Lock className="size-4" aria-hidden />} title="모먹지 애널리틱스" description="관리자 전용 대시보드입니다. 허용된 계정만 로그인할 수 있습니다.">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="login-email" className="text-sm font-medium">
+          <label htmlFor="login-email" className="text-14 font-medium">
             이메일
           </label>
           <Input
@@ -109,14 +109,14 @@ function LoginView({
             aria-describedby={emailInvalid ? 'login-email-error' : undefined}
           />
           {emailInvalid && (
-            <p id="login-email-error" className="text-destructive-on-tint text-xs">
+            <p id="login-email-error" className="text-destructive-on-tint text-12">
               올바른 이메일 형식이 아닙니다.
             </p>
           )}
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="login-password" className="text-sm font-medium">
+          <label htmlFor="login-password" className="text-14 font-medium">
             비밀번호
           </label>
           <PasswordInput
@@ -130,7 +130,7 @@ function LoginView({
 
         <div className="flex items-center gap-2">
           <Checkbox id="login-remember" checked={remember} onCheckedChange={(v) => setRemember(v === true)} />
-          <label htmlFor="login-remember" className="text-sm">
+          <label htmlFor="login-remember" className="text-14">
             로그인 상태 유지
           </label>
         </div>
@@ -201,7 +201,7 @@ function ResetPasswordView({ initialEmail, onBack }: { initialEmail: string; onB
       ) : (
         <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="reset-email" className="text-sm font-medium">
+            <label htmlFor="reset-email" className="text-14 font-medium">
               이메일
             </label>
             <Input
@@ -217,7 +217,7 @@ function ResetPasswordView({ initialEmail, onBack }: { initialEmail: string; onB
               aria-describedby={emailInvalid ? 'reset-email-error' : undefined}
             />
             {emailInvalid && (
-              <p id="reset-email-error" className="text-destructive-on-tint text-xs">
+              <p id="reset-email-error" className="text-destructive-on-tint text-12">
                 올바른 이메일 형식이 아닙니다.
               </p>
             )}

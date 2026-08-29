@@ -58,9 +58,9 @@ export function ChartDonut({ data, height = 200 }: { data: DonutDatum[]; height?
                   className="size-2.5 shrink-0 rounded-[3px]"
                   style={{ backgroundColor: `var(--chart-${(i % 6) + 1})` }}
                 />
-                <span className="text-foreground truncate text-sm">{d.label}</span>
+                <span className="text-foreground truncate text-14">{d.label}</span>
               </div>
-              <div className="text-muted-foreground pl-4 text-xs tabular-nums">
+              <div className="text-muted-foreground pl-4 text-12 tabular-nums">
                 {formatNumber(d.value)} · {pct.toFixed(1)}%
               </div>
             </li>

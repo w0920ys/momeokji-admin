@@ -77,7 +77,7 @@ function ChartContainer({
         data-slot="chart"
         data-chart={chartId}
         className={cn(
-          "flex aspect-auto justify-center text-xs [&_.recharts-cartesian-axis-tick_text]:fill-muted-foreground [&_.recharts-cartesian-grid_line]:stroke-border [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-sector]:outline-none [&_.recharts-surface]:outline-none",
+          "flex aspect-auto justify-center text-12 [&_.recharts-cartesian-axis-tick_text]:fill-muted-foreground [&_.recharts-cartesian-grid_line]:stroke-border [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-sector]:outline-none [&_.recharts-surface]:outline-none",
           className,
         )}
         {...props}
@@ -120,7 +120,7 @@ function ChartTooltipContent({
   return (
     <div
       className={cn(
-        'bg-popover text-popover-foreground z-popover min-w-36 rounded-md border px-3 py-2 text-xs shadow-md',
+        'bg-popover text-popover-foreground z-popover min-w-36 rounded-md border px-3 py-2 text-12 shadow-md',
         className,
       )}
     >
@@ -176,7 +176,7 @@ function ChartLegendContent({
         const key = item.dataKey ?? item.value ?? String(i)
         const itemConfig = config[key as string]
         return (
-          <li key={i} className="text-muted-foreground flex items-center gap-1.5 text-xs">
+          <li key={i} className="text-muted-foreground flex items-center gap-1.5 text-12">
             <span aria-hidden className="size-2.5 rounded-[3px]" style={{ backgroundColor: item.color }} />
             {itemConfig?.label ?? item.value}
           </li>

@@ -68,7 +68,7 @@ export function DesignSystemSection() {
           {FOUNDATION_COLORS.map((group) => (
             <Card key={group.title}>
               <CardHeader>
-                <CardTitle className="text-sm">색 — {group.title}</CardTitle>
+                <CardTitle className="text-14">색 — {group.title}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
@@ -76,7 +76,7 @@ export function DesignSystemSection() {
                     <div key={c.token} className="overflow-hidden rounded-md border">
                       <div className="h-12" style={{ background: c.hex, borderBottom: '1px solid rgba(0,0,0,0.08)' }} />
                       <div className="flex flex-col gap-0.5 p-2.5">
-                        <span className="font-mono text-xs font-semibold">{c.token}</span>
+                        <span className="font-mono text-12 font-semibold">{c.token}</span>
                         <span className="text-muted-foreground font-mono text-[11px]">{c.hex}</span>
                         <span className="text-muted-foreground text-[11px] leading-snug">{c.usage}</span>
                       </div>
@@ -89,7 +89,7 @@ export function DesignSystemSection() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm">타이포 스케일</CardTitle>
+              <CardTitle className="text-14">타이포 스케일</CardTitle>
               <CardDescription>Pretendard, 굵기 주도 위계</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col">
@@ -110,13 +110,13 @@ export function DesignSystemSection() {
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">간격 스케일</CardTitle>
+                <CardTitle className="text-14">간격 스케일</CardTitle>
                 <CardDescription>4px 기반</CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col gap-2.5">
                 {SPACING_SCALE.map((s) => (
                   <div key={s.token} className="flex items-center gap-3">
-                    <span className="text-muted-foreground w-20 shrink-0 font-mono text-xs">{s.token}</span>
+                    <span className="text-muted-foreground w-20 shrink-0 font-mono text-12">{s.token}</span>
                     <span className="bg-primary h-3.5 rounded-[3px]" style={{ width: s.px }} />
                     <span className="text-muted-foreground shrink-0 font-mono text-[11px] tabular-nums">{s.px}px</span>
                   </div>
@@ -126,7 +126,7 @@ export function DesignSystemSection() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">라운드 스케일</CardTitle>
+                <CardTitle className="text-14">라운드 스케일</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-wrap gap-4">
                 {RADIUS_SCALE.map((r) => (
@@ -172,15 +172,15 @@ export function DesignSystemSection() {
               <TableBody>
                 {SEMANTIC_TOKENS.map((t) => (
                   <TableRow key={t.token}>
-                    <TableCell className="font-mono text-xs font-semibold">{t.token}</TableCell>
-                    <TableCell className="text-muted-foreground font-mono text-xs">{t.refPrimitive}</TableCell>
+                    <TableCell className="font-mono text-12 font-semibold">{t.token}</TableCell>
+                    <TableCell className="text-muted-foreground font-mono text-12">{t.refPrimitive}</TableCell>
                     <TableCell>
                       <span className="inline-flex items-center gap-2">
                         <span
                           className="inline-block size-3.5 rounded border"
                           style={{ background: t.hex, borderColor: 'rgba(0,0,0,0.1)' }}
                         />
-                        <span className="font-mono text-xs">{t.hex}</span>
+                        <span className="font-mono text-12">{t.hex}</span>
                       </span>
                     </TableCell>
                     <TableCell className="text-muted-foreground">{t.description}</TableCell>
@@ -209,11 +209,11 @@ export function DesignSystemSection() {
                 const pct = Math.round((u.count / max) * 100)
                 return (
                   <div key={u.token} className="flex items-center gap-3">
-                    <span className="w-40 shrink-0 font-mono text-xs font-semibold">{u.token}</span>
+                    <span className="w-40 shrink-0 font-mono text-12 font-semibold">{u.token}</span>
                     <div className="bg-muted h-2 flex-1 overflow-hidden rounded-full">
                       <div className="bg-primary h-full rounded-full" style={{ width: `${pct}%` }} />
                     </div>
-                    <span className="text-muted-foreground w-14 shrink-0 text-right text-xs font-semibold tabular-nums">
+                    <span className="text-muted-foreground w-14 shrink-0 text-right text-12 font-semibold tabular-nums">
                       {u.count}곳
                     </span>
                   </div>
@@ -226,10 +226,10 @@ export function DesignSystemSection() {
             {USAGE_HIGHLIGHTS.map((h) => (
               <Card key={h.title}>
                 <CardHeader>
-                  <CardTitle className="text-sm">{h.title}</CardTitle>
+                  <CardTitle className="text-14">{h.title}</CardTitle>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-3">
-                  <p className="text-muted-foreground text-xs leading-relaxed">{h.body}</p>
+                  <p className="text-muted-foreground text-12 leading-relaxed">{h.body}</p>
                   {h.where && (
                     <div className="flex flex-wrap gap-1.5">
                       {h.where.map((w) => (

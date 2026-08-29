@@ -25,7 +25,7 @@ export function TrendBadge({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-0.5 text-xs font-semibold tabular-nums',
+        'inline-flex items-center gap-0.5 text-12 font-semibold tabular-nums',
         good ? 'text-success-on-tint' : 'text-destructive-on-tint',
         className,
       )}

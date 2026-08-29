@@ -1,9 +1,12 @@
 /*
  * 이 파일은 어드민 디자인 시스템(adminds)의 토큰 원본과 한 곳만 다르다 —
- * 원본에 있던 `html, body { overflow: hidden }`을 뺐다. 그것은 문서 사이트가
- * 스크롤을 main 하나에 몰아 주려고 둔 것이라 보통의 앱에서는 페이지가
- * 아예 굴러가지 않는다. 나머지는 그대로이므로 원본이 바뀌면 그대로 덮어쓰고
- * 이 한 줄만 다시 빼면 된다.
+ * 원본에 있던 `html, body { overflow: hidden }`을 뺐다. 원본은 셸을
+ * md 이상에서만이 아니라 항상 h-dvh로 고정해 문서 레벨 스크롤 자체가
+ * 있을 수 없다고 전제하지만, 이 프로젝트의 app-shell.tsx는 모바일(md
+ * 미만)에서는 사이드바 없이 셸 전체가 페이지처럼 자연스럽게 스크롤되도록
+ * 일부러 다르게 짰다 — 그 폭에서 overflow: hidden을 걸면 모바일 스크롤이
+ * 통째로 멎는다. 나머지는 그대로이므로 원본이 바뀌면 그대로 덮어쓰고
+ * 이 블록만 다시 빼면 된다.
  */
 
 /* 다크 테마 전환: 루트의 .dark 클래스 */
@@ -17,6 +20,10 @@
   .state-hover & { @slot }
 }
 @custom-variant focus-visible (&:focus-visible, .state-focus &);
+/* File Upload의 드래그 오버 상태. 실제로는 파일을 끌고 영역 위에 왔을 때만
+   data-dragging="true"가 붙는다 — .state-dragging 안의 자손은 끌지 않아도
+   그 스타일을 강제로 받는다. */
+@custom-variant dragging (&[data-dragging='true'], .state-dragging &);
 
 :root {
   --radius: 0.5rem;
@@ -199,8 +206,54 @@
   --shadow-card: 0 1px 2px 0 oklch(0 0 0 / 0.04);
   --shadow-popover: 0 8px 24px -6px oklch(0 0 0 / 0.12);
 
-  --text-2xs: 0.6875rem;
-  --text-2xs--line-height: calc(1 / 0.6875);
+  /*
+   * 열두 단계(text-11~text-48) 전부의 크기와 줄 간격을 Tailwind 기본값 대신 새로
+   * 정의한다. 이름도 픽셀 값으로 바꿔 text-lg·text-xl 같은 T셔츠 이름은 이제 없다.
+   * 기본값 비율(1.33·1.43·1.5 안팎)로는 한 줄이 길어지면 글자벽으로 읽힌다 —
+   * 한글은 음절이 네모 덩어리라 같은 비율에서도 라틴 문자보다 빽빽해 보인다.
+   * 값은 전부 4의 배수인 정수 픽셀로 잡았다. Spacing 문서가 정한 간격 규칙이
+   * 4px 배수(4·8·12·16·24·32·40·48·64)라서, 줄 상자 높이도 같은 눈금에 놓여야
+   * 컨트롤 높이와 어긋나지 않는다.
+   *
+   * text-11(11px, 옛 이름 text-2xs)은 값을 그대로 유지한다 — 배지·메뉴 그룹
+   * 라벨·요일 머리처럼 한 줄짜리 미세 라벨 전용이고, Badge의 높이(px-2 py-0.5 +
+   * 줄 상자 16px = 20px)가 이 값에 직접 걸려 있다.
+   */
+  --text-11: 0.6875rem;
+  --text-11--line-height: 1rem;
+
+  --text-12: 0.75rem;
+  --text-12--line-height: 1.25rem;
+
+  --text-14: 0.875rem;
+  --text-14--line-height: 1.5rem;
+
+  --text-16: 1rem;
+  --text-16--line-height: 1.75rem;
+
+  --text-18: 1.125rem;
+  --text-18--line-height: 1.75rem;
+
+  --text-20: 1.25rem;
+  --text-20--line-height: 1.75rem;
+
+  --text-22: 1.375rem;
+  --text-22--line-height: 2rem;
+
+  --text-24: 1.5rem;
+  --text-24--line-height: 2rem;
+
+  --text-28: 1.75rem;
+  --text-28--line-height: 2.5rem;
+
+  --text-32: 2rem;
+  --text-32--line-height: 2.75rem;
+
+  --text-40: 2.5rem;
+  --text-40--line-height: 3.25rem;
+
+  --text-48: 3rem;
+  --text-48--line-height: 4rem;
 
   /* Pretendard를 앞에 두고 시스템 폰트를 폴백으로 남긴다.
      CDN이 막히거나 폰트가 아직 오지 않아도 한글이 깨지지 않게 한다. */

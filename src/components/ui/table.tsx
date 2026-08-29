@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { ChevronUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 type TableDensity = 'default' | 'compact'
@@ -39,7 +40,7 @@ function Table({
           className,
         )}
       >
-        <table data-slot="table" className="w-full caption-bottom text-sm" {...props}>
+        <table data-slot="table" className="w-full caption-bottom text-14" {...props}>
           {children}
         </table>
       </div>
@@ -101,20 +102,74 @@ function TableHead({
   className,
   numeric,
   sticky,
+  sortable,
+  sortDirection = false,
+  onClick,
+  children,
   ...props
-}: React.ComponentProps<'th'> & { numeric?: boolean; sticky?: boolean }) {
+}: React.ComponentProps<'th'> & {
+  numeric?: boolean
+  sticky?: boolean
+  sortable?: boolean
+  sortDirection?: 'asc' | 'desc' | false
+}) {
+  const ariaSort = sortDirection === false ? 'none' : sortDirection === 'asc' ? 'ascending' : 'descending'
+
   return (
     <th
       scope="col"
       data-slot="table-head"
+      /*
+       * aria-sort는 정렬 가능한 열에만 싣는다. 정렬 가능하지 않은 열에
+       * 'none'을 실으면 보조 기술에 정렬할 수 있다고 말하는 것이 된다.
+       */
+      aria-sort={sortable ? ariaSort : undefined}
+      onClick={sortable ? undefined : onClick}
       className={cn(
-        'text-muted-foreground h-full px-3 text-left align-middle text-xs font-bold whitespace-nowrap',
+        'text-muted-foreground h-full px-3 text-left align-middle text-12 font-bold whitespace-nowrap',
         numeric && 'text-right',
         sticky && 'bg-surface sticky left-0 z-sticky',
         className,
       )}
       {...props}
-    />
+    >
+      {sortable ? (
+        <button
+          type="button"
+          data-slot="table-sort-button"
+          /*
+           * TableHead의 공개 onClick은 보통 올라앉는 th를 기준으로
+           * 타입이 잡혀 있다(정렬 불가능한 열은 currentTarget.scope
+           * 같은 th 전용 멤버를 그대로 읽을 수 있어야 하므로 props
+           * 전체를 넓히지 않는다). 정렬 가능한 열은 같은 핸들러를
+           * 안쪽 button으로 그대로 넘길 뿐이라 여기서만 좁혀 쓴다.
+           */
+          onClick={onClick as React.MouseEventHandler<HTMLButtonElement> | undefined}
+          className={cn(
+            'text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 -mx-1 inline-flex items-center gap-1 rounded px-1 outline-none focus-visible:ring-2',
+            numeric && 'flex-row-reverse',
+          )}
+        >
+          {children}
+          {/*
+           * 방향 아이콘 자리는 정렬되지 않은 열에도 남긴다. 나타났다 사라지면
+           * 누를 때마다 머리의 너비가 바뀌어 표가 튄다.
+           */}
+          <ChevronUp
+            data-slot="table-sort-indicator"
+            size={12}
+            aria-hidden
+            className={cn(
+              'shrink-0 transition-transform',
+              sortDirection === false && 'opacity-0',
+              sortDirection === 'desc' && 'rotate-180',
+            )}
+          />
+        </button>
+      ) : (
+        children
+      )}
+    </th>
   )
 }
 
@@ -128,7 +183,7 @@ function TableCell({
     <td
       data-slot="table-cell"
       className={cn(
-        'px-3 align-middle text-sm whitespace-nowrap',
+        'px-3 align-middle text-14 whitespace-nowrap',
         numeric && 'text-right tabular-nums',
         sticky && 'bg-background sticky left-0 z-sticky group-hover:bg-muted/50 group-data-[state=selected]:bg-accent',
         className,

@@ -59,7 +59,7 @@ function Steps({ className, orientation = 'horizontal', ...props }: StepsProps) 
  * 배경 위에 얹어 어둡게 하고 text-white로 짝짓는다.
  */
 const stepIndicatorVariants = cva(
-  'bg-background relative z-10 flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-medium',
+  'bg-background relative z-10 flex size-8 shrink-0 items-center justify-center rounded-full text-16 font-medium',
   {
     variants: {
       state: {
@@ -108,7 +108,7 @@ function StepLabel({ className, ...props }: React.ComponentProps<'p'>) {
     <p
       data-slot="step-label"
       className={cn(
-        'text-sm font-medium',
+        'text-16 font-medium',
         orientation === 'vertical' && 'col-start-2 row-start-1',
         className,
       )}
@@ -123,7 +123,7 @@ function StepDescription({ className, ...props }: React.ComponentProps<'p'>) {
     <p
       data-slot="step-description"
       className={cn(
-        'text-muted-foreground text-xs',
+        'text-muted-foreground text-12',
         orientation === 'vertical' && 'col-start-2 row-start-2',
         className,
       )}
