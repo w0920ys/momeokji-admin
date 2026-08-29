@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/ui/password-input'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { setRememberMe } from '@/lib/supabase'
+import { applyRememberMe } from '@/lib/supabase'
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -79,10 +79,11 @@ function LoginView({
     setLocalError(null)
     setSubmitting(true)
     try {
-      // 로그인 API를 부르기 전에 세션을 어디에 쓸지부터 정한다 — 응답이
-      // 오는 순간 storage에 곧바로 쓰이기 시작하므로 순서가 중요하다.
-      setRememberMe(remember)
       await signIn(email, password)
+      // 로그인이 완전히 끝나 SDK가 localStorage에 세션을 다 쓴 뒤에만
+      // "유지 안 함"이면 sessionStorage로 옮긴다 — 로그인 도중에 손대면
+      // SDK 내부 저장 타이밍과 충돌한다(supabase.ts 상단 주석 참고).
+      applyRememberMe(remember)
     } catch {
       // useAuth 쪽 state.error에 이미 메시지가 담김 — 여기선 재던지지 않음.
     } finally {

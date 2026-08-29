@@ -21,6 +21,14 @@ const TableDensityContext = React.createContext<TableDensity>('default')
  * 포인터가 없으면 이 칸으로 Tab이 와서 방향키로 훑을 수 있어야 한다.
  * label은 필수다 — region에는 이름이 있어야 하는데 이 컴포넌트는 표
  * 안의 내용을 모르므로 호출한 쪽이 채워야 한다.
+ *
+ * 좁은 화면(모바일 폭)에서 열이 넘치면 마지막 열이 카드 가장자리에서
+ * 뚝 잘려 "스크롤된다"는 신호가 전혀 없다 — 실제로는 만질 수 있는데
+ * 눈으로는 깨진 레이아웃처럼 보인다. 이 시스템은 그림자를 쓰지 않는
+ * 원칙이라(card.tsx 엘리베이션 주석 참고) box-shadow로 힌트를 주는
+ * 대신, 스크롤 가능한 방향의 표 자체를 mask-image로 페이드시킨다 —
+ * 배경색을 새로 칠하는 게 아니라 표 픽셀 자체가 옅어지므로 어떤 카드
+ * 배경 위에서도 이질감 없이 맞는다.
  */
 function Table({
   className,
@@ -29,12 +37,41 @@ function Table({
   children,
   ...props
 }: React.ComponentProps<'table'> & { density?: TableDensity; label: string }) {
+  const scrollRef = React.useRef<HTMLDivElement>(null)
+  const [fade, setFade] = React.useState<{ left: boolean; right: boolean }>({ left: false, right: false })
+
+  const updateFade = React.useCallback(() => {
+    const el = scrollRef.current
+    if (!el) return
+    setFade({
+      left: el.scrollLeft > 1,
+      right: el.scrollLeft + el.clientWidth < el.scrollWidth - 1,
+    })
+  }, [])
+
+  React.useLayoutEffect(() => {
+    updateFade()
+    const el = scrollRef.current
+    if (!el) return
+    const ro = new ResizeObserver(updateFade)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [updateFade, children])
+
+  const FADE_PX = 20
+  const maskImage = fade.left || fade.right
+    ? `linear-gradient(to right, ${fade.left ? 'transparent, black ' + FADE_PX + 'px' : 'black'}, black calc(100% - ${fade.right ? FADE_PX : 0}px), ${fade.right ? 'transparent' : 'black'})`
+    : undefined
+
   return (
     <TableDensityContext.Provider value={density}>
       <div
+        ref={scrollRef}
         role="region"
         aria-label={label}
         tabIndex={0}
+        onScroll={updateFade}
+        style={maskImage ? { WebkitMaskImage: maskImage, maskImage } : undefined}
         className={cn(
           'w-full overflow-x-auto rounded-md border outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-2',
           className,

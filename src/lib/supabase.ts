@@ -20,37 +20,43 @@ if (!url || !anonKey) {
 }
 
 /*
- * "로그인 상태 유지" 체크박스 — 껐다 켰다 하는 진짜 자리는 세션을 어느
- * storage에 쓰느냐다. localStorage는 브라우저를 껐다 켜도 남고,
- * sessionStorage는 이 탭이 닫히면 사라진다. Supabase 클라이언트는 앱
- * 전체에서 하나만 써야 하므로(alerts.ts 등 여러 곳이 이 인스턴스를
- * import한다), storage 자체를 두 곳을 오가는 얇은 어댑터로 만들고
- * 로그인 직전에 setRememberMe로 목적지만 바꾼다.
+ * "로그인 상태 유지" 체크박스는 커스텀 storage 어댑터로 구현하지 않는다
+ * — 실제로 시도해봤더니(이 파일의 이전 버전) signInWithPassword가 세션을
+ * 돌려주고도 storage.setItem이 한 번도 반영되지 않아 getSession()이 늘
+ * null을 보는 조용한 로그인 실패로 이어졌다. supabase-js가 커스텀
+ * storage를 생성 시점에 자체 검증하면서 우리 어댑터를 신뢰 못 할 storage로
+ * 판단해 내부적으로 memoryStorage로 조용히 대체해버리는 것으로 보인다
+ * (같은 문제를 jeomechu/index.html에서도 한 번 겪었다 — 그때도 원인과
+ * 해결책이 같았다).
  *
- * 새로고침 직후에는 이 변수가 기본값(local)으로 되돌아간다 — 그래서
- * "유지 안 함"으로 로그인해도 sessionStorage에 실제로 쓰여 있는 세션은
- * 그대로 읽힌다(같은 탭을 새로고침하는 동안은 로그인 유지, 탭/브라우저를
- * 완전히 닫으면 sessionStorage가 비어 로그아웃 상태로 시작).
+ * 그래서 여기도 jeomechu와 똑같이: Supabase 클라이언트는 기본 storage
+ * (항상 localStorage)를 그대로 쓰고, "유지 안 함"은 로그인이 완전히
+ * 끝난 뒤 SDK가 이미 localStorage에 써둔 세션 키를 sessionStorage로
+ * 옮기는 후처리로만 구현한다(applyRememberMe, LoginPage에서 signIn
+ * 성공 직후 호출). 로그인 도중에는 손대지 않으므로 SDK 내부 동기화
+ * 타이밍을 방해할 여지가 없다.
  */
-let rememberSession = true
-export function setRememberMe(remember: boolean) {
-  rememberSession = remember
+const SB_PROJECT_REF = (url ?? '').match(/^https:\/\/([a-z0-9]+)\.supabase\.co/)?.[1] ?? ''
+const SB_SESSION_KEY = SB_PROJECT_REF ? `sb-${SB_PROJECT_REF}-auth-token` : null
+
+export function applyRememberMe(remember: boolean) {
+  if (!SB_SESSION_KEY) return
+  if (remember) {
+    const s = sessionStorage.getItem(SB_SESSION_KEY)
+    if (s) {
+      localStorage.setItem(SB_SESSION_KEY, s)
+      sessionStorage.removeItem(SB_SESSION_KEY)
+    }
+  } else {
+    const v = localStorage.getItem(SB_SESSION_KEY)
+    if (v) {
+      sessionStorage.setItem(SB_SESSION_KEY, v)
+      localStorage.removeItem(SB_SESSION_KEY)
+    }
+  }
 }
 
-const dynamicStorage = {
-  getItem: (key: string) => localStorage.getItem(key) ?? sessionStorage.getItem(key),
-  setItem: (key: string, value: string) => {
-    ;(rememberSession ? localStorage : sessionStorage).setItem(key, value)
-  },
-  removeItem: (key: string) => {
-    localStorage.removeItem(key)
-    sessionStorage.removeItem(key)
-  },
-}
-
-export const supabase = createClient(url ?? '', anonKey ?? '', {
-  auth: { storage: dynamicStorage },
-})
+export const supabase = createClient(url ?? '', anonKey ?? '')
 
 /** 로그인 성공 후에도 이 이메일이 아니면 즉시 로그아웃시키는 관리자 1인 게이트. */
 export const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL as string | undefined

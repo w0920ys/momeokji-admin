@@ -48,13 +48,22 @@ export function AppShell({
     <div className="bg-background text-foreground flex flex-col md:h-svh md:flex-row">
       <aside className="hidden shrink-0 flex-col border-r md:flex md:w-56">
         <div className="flex h-14 items-center gap-2 px-4 font-semibold">{brand}</div>
-        {topNav && <div className="px-2 pb-2">{topNav}</div>}
         <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-2" aria-label="대시보드 섹션">
           {nav.map((item) => (
             <NavButton key={item.id} item={item} active={item.id === activeId} onClick={() => onNavigate?.(item.id)} />
           ))}
         </nav>
-        {actions && <div className="border-t p-2">{actions}</div>}
+        {/* 상위 모드 스위처(topNav)는 맨 아래에 고정한다 — 이 nav 목록보다
+            자주 안 바뀌는 "지금 어느 모드에 있는가"라, 매번 눈에 걸리는
+            위(brand 바로 아래)보다는 계정 actions와 같은 급의 하단 고정
+            바가 더 맞는다. actions와 붙는 순서라 topNav를 위, 구분선,
+            actions를 아래로 둔다. */}
+        {(topNav || actions) && (
+          <div className="border-t p-2">
+            {topNav && <div className="pb-2">{topNav}</div>}
+            {actions}
+          </div>
+        )}
       </aside>
 
       <header className="border-b md:hidden">
@@ -62,12 +71,12 @@ export function AppShell({
           {brand}
           {actions}
         </div>
-        {topNav && <div className="px-2 pb-2">{topNav}</div>}
         <nav className="scrollbar-none flex gap-1 overflow-x-auto px-2 pb-2" aria-label="대시보드 섹션">
           {nav.map((item) => (
             <NavButton key={item.id} item={item} active={item.id === activeId} onClick={() => onNavigate?.(item.id)} compact />
           ))}
         </nav>
+        {topNav && <div className="border-t px-2 py-2">{topNav}</div>}
       </header>
 
       <main className="min-h-0 min-w-0 flex-1 md:overflow-y-auto">{children}</main>

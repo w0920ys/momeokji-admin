@@ -15,7 +15,14 @@
  * 오히려 오해를 만든다).
  */
 
-const PREVIEW_HEAD = `
+/**
+ * 이 프리뷰의 <head>(폰트 + 모먹지 실제 CSS 발췌). 컴포넌트 탭뿐 아니라
+ * 이벤트 카탈로그의 "이 이벤트가 화면 어디서 발생하는가" 미리보기도
+ * 같은 iframe 격리 기법을 쓰므로 momeokji-event-screens.ts에서도
+ * 그대로 가져다 쓴다 — 두 파일이 서로 다른 CSS 사본을 들고 있으면
+ * index.html이 바뀔 때마다 두 곳을 따로 맞춰야 해서 하나로 묶는다.
+ */
+export const PREVIEW_HEAD = `
 <meta charset="utf-8">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
