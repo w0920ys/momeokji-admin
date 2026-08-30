@@ -1,12 +1,21 @@
-import { useState } from 'react'
-import { Info } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { Info, Search, X } from 'lucide-react'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Input } from '@/components/ui/input'
+import { EmptyState, EmptyStateIcon, EmptyStateTitle, EmptyStateDescription } from '@/components/ui/empty-state'
 import { ComponentPreviewFrame } from '@/components/ui/component-preview-frame'
 import { buildEventScreenHtml } from '@/lib/momeokji-event-screens'
-import { EVENT_CATALOG, EVENT_CATEGORIES, EVENT_DEPLOYMENT, getMetricsForEvent } from '@/lib/metrics/event-catalog'
+import {
+  EVENT_CATALOG,
+  EVENT_CATEGORIES,
+  EVENT_DEPLOYMENT,
+  PROPERTY_CATALOG,
+  getMetricsForEvent,
+  searchEventCatalog,
+} from '@/lib/metrics/event-catalog'
 import { cn } from '@/lib/utils'
 
 /*
@@ -21,8 +30,15 @@ import { cn } from '@/lib/utils'
  */
 export function EventCatalogSection() {
   const [selected, setSelected] = useState(EVENT_CATALOG[0].name)
+  const [query, setQuery] = useState('')
   const entry = EVENT_CATALOG.find((e) => e.name === selected) ?? EVENT_CATALOG[0]
   const usedInMetrics = getMetricsForEvent(entry.name)
+
+  const filtered = useMemo(() => searchEventCatalog(query), [query])
+  const filteredCategories = useMemo(
+    () => EVENT_CATEGORIES.filter((cat) => filtered.some((e) => e.category === cat)),
+    [filtered],
+  )
 
   return (
     <div className="flex flex-col gap-4">
@@ -43,29 +59,95 @@ export function EventCatalogSection() {
         </CardContent>
       </Card>
 
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">전체 프로퍼티 ({PROPERTY_CATALOG.length})</CardTitle>
+          <CardDescription>
+            프로퍼티 이름을 누르면 그 프로퍼티를 가진 이벤트만 아래 목록에 걸러 보여줍니다 — "이 값 어느 이벤트에 있더라"를 반대로 찾을 때.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3">
+          <div className="flex flex-col gap-1.5">
+            <span className="text-muted-foreground text-[11px] font-semibold uppercase">Event property</span>
+            <div className="flex flex-wrap gap-1">
+              {PROPERTY_CATALOG.filter((p) => p.kind === 'event').map((p) => (
+                <button key={`event:${p.name}`} type="button" onClick={() => setQuery(p.name)}>
+                  <Badge variant="neutral" className="cursor-pointer hover:opacity-70">
+                    {p.name} <span className="text-muted-foreground">·{p.events.length}</span>
+                  </Badge>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <span className="text-muted-foreground text-[11px] font-semibold uppercase">Person property</span>
+            <div className="flex flex-wrap gap-1">
+              {PROPERTY_CATALOG.filter((p) => p.kind === 'person').map((p) => (
+                <button key={`person:${p.name}`} type="button" onClick={() => setQuery(p.name)}>
+                  <Badge variant="warning" className="cursor-pointer hover:opacity-70">
+                    {p.name} <span className="text-muted-foreground">·{p.events.length}</span>
+                  </Badge>
+                </button>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[280px_1fr]">
         <Card padding="none" className="h-fit lg:sticky lg:top-4">
+          <div className="relative p-2 pb-0">
+            <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-4 size-3.5 -translate-y-1/2" aria-hidden />
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="이벤트 · 프로퍼티 검색"
+              className="h-8 pl-8 text-[12px]"
+            />
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery('')}
+                className="text-muted-foreground hover:text-foreground absolute top-1/2 right-4 -translate-y-1/2"
+                aria-label="검색어 지우기"
+              >
+                <X className="size-3.5" />
+              </button>
+            )}
+          </div>
           <CardContent className="max-h-[70vh] overflow-y-auto p-2">
-            {EVENT_CATEGORIES.map((cat) => (
-              <div key={cat} className="mb-1">
-                <div className="text-muted-foreground px-2 py-1.5 text-[11px] font-semibold tracking-wide uppercase">{cat}</div>
-                {EVENT_CATALOG.filter((e) => e.category === cat).map((e) => (
-                  <button
-                    key={e.name}
-                    type="button"
-                    onClick={() => setSelected(e.name)}
-                    className={cn(
-                      'block w-full rounded-md px-2 py-1.5 text-left font-mono text-[12px] transition-colors',
-                      e.name === selected
-                        ? 'bg-accent text-accent-foreground font-semibold'
-                        : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground',
-                    )}
-                  >
-                    {e.name}
-                  </button>
-                ))}
-              </div>
-            ))}
+            {filteredCategories.length ? (
+              filteredCategories.map((cat) => (
+                <div key={cat} className="mb-1">
+                  <div className="text-muted-foreground px-2 py-1.5 text-[11px] font-semibold tracking-wide uppercase">{cat}</div>
+                  {filtered
+                    .filter((e) => e.category === cat)
+                    .map((e) => (
+                      <button
+                        key={e.name}
+                        type="button"
+                        onClick={() => setSelected(e.name)}
+                        className={cn(
+                          'block w-full rounded-md px-2 py-1.5 text-left font-mono text-[12px] transition-colors',
+                          e.name === selected
+                            ? 'bg-accent text-accent-foreground font-semibold'
+                            : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground',
+                        )}
+                      >
+                        {e.name}
+                      </button>
+                    ))}
+                </div>
+              ))
+            ) : (
+              <EmptyState variant="no-results" size="compact">
+                <EmptyStateIcon>
+                  <Search aria-hidden />
+                </EmptyStateIcon>
+                <EmptyStateTitle>일치하는 이벤트가 없습니다</EmptyStateTitle>
+                <EmptyStateDescription>다른 이벤트 이름이나 프로퍼티로 검색해보세요.</EmptyStateDescription>
+              </EmptyState>
+            )}
           </CardContent>
         </Card>
 

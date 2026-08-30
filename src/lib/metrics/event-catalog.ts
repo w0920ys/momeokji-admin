@@ -109,6 +109,61 @@ export const EVENT_CATALOG: EventCatalogEntry[] = [
 
 export const EVENT_CATEGORIES: string[] = Array.from(new Set(EVENT_CATALOG.map((e) => e.category)))
 
+/*
+ * EVENT_CATALOG은 "이벤트 하나 → 그 프로퍼티들"을 담는다. 이 아래는
+ * 그 반대 방향 — "프로퍼티 하나 → 그걸 갖고 있는 이벤트들"이다. "group
+ * 이라는 프로퍼티가 어디어디에 쓰이지?" 같은 역방향 조회에 쓴다.
+ *
+ * event property와 person property는 이름이 같아도 분리해서 센다
+ * (kind로 구분) — 하나는 이벤트 발생 1회성 값이고 하나는 사용자에게
+ * 영구히 남는 코호트 속성이라 의미가 다르다. UI에서도 이미 다른
+ * Badge variant(neutral vs warning)로 구분해 보여주고 있다.
+ */
+export interface PropertyCatalogEntry {
+  name: string
+  kind: 'event' | 'person'
+  /** 이 프로퍼티를 싣는 이벤트 이름들. */
+  events: string[]
+}
+
+export const PROPERTY_CATALOG: PropertyCatalogEntry[] = (() => {
+  const map = new Map<string, PropertyCatalogEntry>()
+  const add = (name: string, kind: PropertyCatalogEntry['kind'], eventName: string) => {
+    const key = `${kind}:${name}`
+    const existing = map.get(key)
+    if (existing) {
+      existing.events.push(eventName)
+    } else {
+      map.set(key, { name, kind, events: [eventName] })
+    }
+  }
+  for (const e of EVENT_CATALOG) {
+    for (const p of e.properties) add(p, 'event', e.name)
+    for (const p of e.personProperties ?? []) add(p, 'person', e.name)
+  }
+  return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name))
+})()
+
+/**
+ * 이벤트 이름·카테고리·트리거 설명·프로퍼티·person property 전부를
+ * 대상으로 대소문자 구분 없이 부분일치 검색한다. 빈 문자열이면 전체를
+ * 그대로 돌려준다. "이 프로퍼티를 가진 이벤트가 뭐지"(역방향)와 "이
+ * 이벤트 이름이 뭐였더라"(정방향) 둘 다 같은 검색창 하나로 처리하려는
+ * 의도 — 카탈로그를 쓰는 사람이 어느 방향에서 출발할지 미리 알 수 없다.
+ */
+export function searchEventCatalog(query: string): EventCatalogEntry[] {
+  const q = query.trim().toLowerCase()
+  if (!q) return EVENT_CATALOG
+  return EVENT_CATALOG.filter(
+    (e) =>
+      e.name.toLowerCase().includes(q) ||
+      e.category.toLowerCase().includes(q) ||
+      e.trigger.toLowerCase().includes(q) ||
+      e.properties.some((p) => p.toLowerCase().includes(q)) ||
+      (e.personProperties ?? []).some((p) => p.toLowerCase().includes(q)),
+  )
+}
+
 /**
  * 이 이벤트를 events[].name에 걸고 있는 지표 정의를 전부 찾는다. 지표
  * 쪽 event ref는 "push_subscribed / notify_toggled"처럼 여러 이벤트를
