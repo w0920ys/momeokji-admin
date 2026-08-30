@@ -347,7 +347,7 @@ function UserDetailDialog({ user, onClose }: { user: ManagedUser; onClose: () =>
           <DialogDescription>{user.email}</DialogDescription>
         </DialogHeader>
 
-        <DescriptionList layout="horizontal">
+        <DescriptionList layout="stacked" columns="two">
           <DescriptionItem>
             <DescriptionTerm>가입일</DescriptionTerm>
             <DescriptionDetail>{formatDate(user.createdAt)}</DescriptionDetail>
@@ -401,7 +401,7 @@ function UserDetailDialog({ user, onClose }: { user: ManagedUser; onClose: () =>
 
           {activity && activity.found && (
             <div className="flex flex-col gap-4">
-              <DescriptionList layout="horizontal">
+              <DescriptionList layout="stacked" columns="two">
                 <DescriptionItem>
                   <DescriptionTerm>
                     <Smartphone className="mr-1 inline size-3.5" aria-hidden />
@@ -426,7 +426,7 @@ function UserDetailDialog({ user, onClose }: { user: ManagedUser; onClose: () =>
               <div className="grid grid-cols-3 gap-3">
                 <StatCard label="스핀" value={String(activity.spins)} />
                 <StatCard label="확정" value={String(activity.confirms)} />
-                <StatCard label="Spin→Confirm" value={formatPercent(activity.spinToConfirmRate)} hint="이 유저의 전환율" />
+                <StatCard label="Spin → Confirm" value={formatPercent(activity.spinToConfirmRate)} hint="이 유저의 전환율" />
               </div>
               <p className="text-muted-foreground text-12">
                 <Dices className="mr-1 inline size-3" aria-hidden />

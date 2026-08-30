@@ -20,14 +20,25 @@ function DialogOverlay({ className, ...props }: React.ComponentProps<typeof Dial
 
 /*
  * 바깥 그릇이 p-4(위아래 합 2rem)만큼 여백을 먹으므로, 내용이 그
- * 남은 높이(100svh - 2rem)를 넘으면 컨테이너 자체가 스크롤한다.
+ * 남은 높이(100svh - 2rem)를 넘으면 컨테이너 자체가 세로로 스크롤한다.
  * 이게 없으면 화면보다 긴 다이얼로그(예: 유저 상세)는 아래쪽 내용이
  * 그냥 넘쳐서 잘리고, 바깥 덮개는 고정(fixed)이라 스크롤할 방법이
  * 없어진다 — 헤더/푸터를 스크롤 밖으로 고정하는 대신 전체를 한
  * 스크롤 컨테이너로 두는 쪽을 택했다(Sheet와 같은 방식).
+ *
+ * overflow-x-hidden: 다이얼로그는 세로로만 스크롤해야 한다 — 가로
+ * 스크롤은 절대 생기면 안 된다. overflow-y를 auto로 두면 CSS 스펙상
+ * overflow-x가 visible이어도 auto로 강제 승격되는데(둘 중 하나가
+ * visible이 아니면 나머지도 auto가 됨), 안에 줄바꿈 없는 텍스트나
+ * 좁은 grid 칸(예: 3열 KPI 타일)이 있으면 그 승격된 overflow-x가
+ * 실제로 가로 스크롤바를 만들어 버린다. 내용 쪽(각 컴포넌트에
+ * min-w-0 등)도 넘치지 않게 고치는 게 우선이지만, 그것과 별개로
+ * 다이얼로그 자체는 항상 overflow-x-hidden으로 가로 스크롤을 원천
+ * 차단한다 — 못 고친 콘텐츠가 있어도 최소한 스크롤바는 안 생기고
+ * 조용히 줄바꿈되거나 잘리는 쪽을 택한다.
  */
 const dialogContentVariants = cva(
-  'max-h-[calc(100svh-2rem)] w-full overflow-y-auto rounded-lg border bg-background p-6 shadow-lg outline-none',
+  'max-h-[calc(100svh-2rem)] w-full overflow-y-auto overflow-x-hidden rounded-lg border bg-background p-6 shadow-lg outline-none',
   {
     variants: {
       size: {

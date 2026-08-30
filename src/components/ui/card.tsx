@@ -29,8 +29,16 @@ const CardPaddingContext = React.createContext<CardPadding>('default')
  * 대신 다크에서는 밝기로 떠 있음을 말한다 — elevated는 다크에서 한
  * 단계 밝은 표면(--surface-raised)에 얹히고 그림자·테두리 둘 다
  * 두지 않는다. outlined는 라이트·다크 모두 테두리 + bg-card로 고정이다.
+ *
+ * min-w-0: Card는 grid/flex 칸(예: KPI 타일 그리드)의 자식으로도 자주
+ * 쓰인다. 기본 min-width:auto 상태로는 내부에 줄바꿈 없는 텍스트가
+ * 하나만 있어도(예: "Spin→Confirm") 그 텍스트 폭만큼 칸을 억지로
+ * 넓혀 부모 그리드 전체가 가로로 넘친다 — min-w-0로 칸을 실제
+ * 콘텐츠 폭 이하로도 줄어들 수 있게 허용해 이 종류의 넘침을 원천
+ * 차단한다. 단독으로 쓰일 때는 어차피 부모가 폭을 정해주므로 아무
+ * 영향이 없다.
  */
-const cardVariants = cva('flex flex-col gap-6 rounded-lg py-6 text-card-foreground', {
+const cardVariants = cva('flex min-w-0 flex-col gap-6 rounded-lg py-6 text-card-foreground', {
   variants: {
     variant: {
       outlined: 'border bg-card',
