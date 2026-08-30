@@ -18,16 +18,27 @@ function DialogOverlay({ className, ...props }: React.ComponentProps<typeof Dial
   )
 }
 
-const dialogContentVariants = cva('w-full rounded-lg border bg-background p-6 shadow-lg outline-none', {
-  variants: {
-    size: {
-      sm: 'max-w-sm',
-      default: 'max-w-md',
-      lg: 'max-w-2xl',
+/*
+ * 바깥 그릇이 p-4(위아래 합 2rem)만큼 여백을 먹으므로, 내용이 그
+ * 남은 높이(100svh - 2rem)를 넘으면 컨테이너 자체가 스크롤한다.
+ * 이게 없으면 화면보다 긴 다이얼로그(예: 유저 상세)는 아래쪽 내용이
+ * 그냥 넘쳐서 잘리고, 바깥 덮개는 고정(fixed)이라 스크롤할 방법이
+ * 없어진다 — 헤더/푸터를 스크롤 밖으로 고정하는 대신 전체를 한
+ * 스크롤 컨테이너로 두는 쪽을 택했다(Sheet와 같은 방식).
+ */
+const dialogContentVariants = cva(
+  'max-h-[calc(100svh-2rem)] w-full overflow-y-auto rounded-lg border bg-background p-6 shadow-lg outline-none',
+  {
+    variants: {
+      size: {
+        sm: 'max-w-sm',
+        default: 'max-w-md',
+        lg: 'max-w-2xl',
+      },
     },
+    defaultVariants: { size: 'default' },
   },
-  defaultVariants: { size: 'default' },
-})
+)
 
 /*
  * calc()로 뷰포트 폭에서 여백을 빼는 대신, 덮개를 그대로 중앙 정렬
