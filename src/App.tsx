@@ -207,6 +207,7 @@ function AnalyticsDashboard({
               {/* ★1 유입 */}
               {activeId === 'acquisition' && (
                 <Section id="acquisition" title="유입 (획득)" description="어디서, 어떤 경로로 새 사용자가 들어오는가.">
+                  {/* Container Grid System: Two-thirds + One-third */}
                   <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
                     <Card className="lg:col-span-2">
                       <CardHeader>
@@ -282,6 +283,7 @@ function AnalyticsDashboard({
               {/* ★2 재방문 */}
               {activeId === 'retention' && (
                 <Section id="retention" title="재방문 (재참여)" description="한 번 온 사용자가 다시 돌아오는가 — 특히 알림을 통해.">
+                  {/* Container Grid System: Two-thirds + One-third */}
                   <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
                     <Card className="lg:col-span-2">
                       <CardHeader>
@@ -338,6 +340,7 @@ function AnalyticsDashboard({
               {/* ★3 룰렛 핵심 사용 */}
               {activeId === 'roulette' && (
                 <Section id="roulette" title="룰렛 핵심 사용" description="돌리고, 확정하는 핵심 행동 — 모먹지의 존재 이유.">
+                  {/* Container Grid System: Half */}
                   <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                     <Card>
                       <CardHeader>
@@ -369,7 +372,8 @@ function AnalyticsDashboard({
                       </CardContent>
                     </Card>
                   </div>
-                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                  {/* Container Grid System: Half — 아이템 2개뿐이라 4칸이면 sm 이상에서 오른쪽 절반이 빈다 */}
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <StatCard
                       label="Spin→Confirm 전환율"
                       value={formatPercent(data.roulette.spinToConfirmRate)}
@@ -389,6 +393,7 @@ function AnalyticsDashboard({
               {/* 핵심 인게이지먼트 */}
               {activeId === 'engagement' && (
                 <Section id="engagement" title="핵심 인게이지먼트" description="주당 결정 빈도 · 점착도 · 북극성(WRD) 깊은 확인.">
+                  {/* Container Grid System: Third */}
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                     <StatCard
                       label="주간 반복 결정자 (북극성)"
@@ -459,6 +464,7 @@ function AnalyticsDashboard({
               {/* 바이럴 */}
               {activeId === 'virality' && (
                 <Section id="virality" title="바이럴" description="'함께 정하기' 룸이 만드는 초대 루프.">
+                  {/* Container Grid System: Two-thirds + One-third */}
                   <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
                     <Card className="lg:col-span-2">
                       <CardHeader>
@@ -655,6 +661,7 @@ function SettingsDashboard({
         <PageHeader title="설정" description="디자인 시스템 버전, 관리자 계정, KPI 알림 규칙." />
         <div className="flex flex-col gap-10 px-6 py-8">
           {!data ? (
+            // Container Grid System: Half — 아래 SettingsSection의 카드 2개와 같은 grid
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               <Skeleton shape="block" className="h-40" />
               <Skeleton shape="block" className="h-40" />

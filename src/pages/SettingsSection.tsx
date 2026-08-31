@@ -45,6 +45,7 @@ export function SettingsSection({
 }) {
   return (
     <div className="flex flex-col gap-6">
+      {/* Container Grid System: Half */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <DesignSystemCard />
         <AccountCard email={adminEmail} onSignOut={onSignOut} />

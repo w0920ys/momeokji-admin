@@ -237,6 +237,7 @@ export function DesignSystemSection({ activeId }: { activeId: string }) {
             </CardContent>
           </Card>
 
+          {/* Container Grid System: Third */}
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
             {USAGE_HIGHLIGHTS.map((h) => (
               <Card key={h.title}>
