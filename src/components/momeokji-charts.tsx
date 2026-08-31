@@ -83,6 +83,35 @@ export function InlineChartBarCategorical({
   )
 }
 
+/**
+ * 날짜별 세로 막대 — "하루에 몇 번"처럼 시간축 위 단일 시리즈를 막대로
+ * 보여주는 자리용(유저 상세의 28일 방문 횟수). InlineChartLine과 축
+ * 구성은 같고 Line 대신 Bar 하나만 그린다 — 시리즈가 여럿인 경우는
+ * 다루지 않는다(그럴 땐 InlineChartLine을 쓸 것).
+ */
+export function InlineChartBarDaily({
+  data,
+  categoryKey,
+  valueKey,
+}: {
+  data: Array<Record<string, string | number>>
+  categoryKey: string
+  valueKey: string
+}) {
+  const config: ChartConfig = { [valueKey]: { label: '방문', color: 'var(--chart-1)' } }
+  return (
+    <ChartContainer config={config}>
+      <BarChart accessibilityLayer data={data} margin={{ left: 12, right: 12 }}>
+        <CartesianGrid vertical={false} />
+        <XAxis dataKey={categoryKey} tickLine={false} axisLine={false} tickMargin={8} />
+        <YAxis allowDecimals={false} tickLine={false} axisLine={false} tickMargin={8} width={28} />
+        <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+        <Bar dataKey={valueKey} radius={[3, 3, 0, 0]} fill="var(--chart-1)" />
+      </BarChart>
+    </ChartContainer>
+  )
+}
+
 /** 도넛 — 구성비(전체 대비 항목별 비중)를 보여주는 자리용. */
 export function InlineChartDonut({ data }: { data: Array<{ label: string; value: number }> }) {
   const config: ChartConfig = Object.fromEntries(

@@ -572,7 +572,11 @@ function AnalyticsDashboard({
 
               {/* 유저 관리 */}
               {activeId === 'users' && (
-                <Section id="users" title="유저 관리" description="가입한 모먹지 사용자 — 언제 가입했는지, 닉네임 수정, 계정 삭제.">
+                <Section
+                  id="users"
+                  title="유저 관리"
+                  description="회원(가입 계정)과 비회원(PostHog 익명 방문자) — 방문 패턴·속성·Activity Feed까지 한 명씩 들여다봅니다."
+                >
                   <UsersSection />
                 </Section>
               )}
