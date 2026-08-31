@@ -182,8 +182,9 @@ function AnalyticsDashboard({
 
         <div className="flex flex-col gap-10 px-6 py-8">
           {!data ? (
-            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-              {Array.from({ length: 8 }, (_, i) => (
+            // Container Grid System: Sixth — 아래 HomeSection의 실제 KPI 타일(6개)과 같은 grid
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-6">
+              {Array.from({ length: 6 }, (_, i) => (
                 <Skeleton key={i} shape="block" className="h-24" />
               ))}
             </div>

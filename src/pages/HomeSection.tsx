@@ -30,7 +30,8 @@ export function HomeSection({ data, onJump }: { data: DashboardData; onJump: (id
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-6">
+      {/* Container Grid System: Sixth — lg에서 곧장 6-up, xl 단계는 쓰지 않는다 */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-6">
         {data.overview.map((stat) => (
           <StatCard
             key={stat.id}
